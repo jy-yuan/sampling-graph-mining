@@ -1,0 +1,9 @@
+./build
+build
+./build/*
+
+./zgraph_datasets
+./zgraph_datasets/*
+zgraph_datasets
+
+tags
