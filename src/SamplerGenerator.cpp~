@@ -1,0 +1,462 @@
+#include <assert.h>
+#include <string.h>
+
+#include <algorithm>
+
+#include "SamplerGenerator.hpp"
+#include "Debug.hpp"
+
+// Pattern
+
+void Pattern::construct_csr() {
+	//Debug::get_instance()->enter_function("Pattern::construct_csr");
+	for (VertexId v_i = 0; v_i <= num_vertices; ++ v_i) {
+		csr_idx[v_i] = 0;
+	}
+	for (EdgeId e_i = 0; e_i < num_edges; ++ e_i) {
+		VertexId src = edges[e_i].src;
+		VertexId dst = edges[e_i].dst;
+		csr_idx[src + 1] ++;
+		csr_idx[dst + 1] ++;
+	}
+	for (VertexId v_i = 1; v_i <= num_vertices; ++ v_i) {
+		csr_idx[v_i] += csr_idx[v_i - 1];
+	}
+	EdgeId *curr_pos = new EdgeId[num_vertices + 1];
+	for (VertexId v_i = 0; v_i <= num_vertices; ++ v_i) {
+		curr_pos[v_i] = csr_idx[v_i];
+	}
+	for (EdgeId e_i = 0; e_i < num_edges; ++ e_i) {
+		VertexId src = edges[e_i].src;
+		VertexId dst = edges[e_i].dst;
+		EdgeId edge_id = edges[e_i].edge_id;
+
+		EdgeId pos = curr_pos[src] ++;
+		csr_list[pos].src = src;
+		csr_list[pos].dst = dst;
+		csr_list[pos].edge_id = edge_id;
+
+		pos = curr_pos[dst] ++;
+		csr_list[pos].src = dst;
+		csr_list[pos].dst = src;
+		csr_list[pos].edge_id = edge_id;
+	}
+	for (VertexId v_i = 1; v_i <= num_vertices; ++ v_i) {
+		assert(curr_pos[v_i - 1] == csr_idx[v_i]);
+	}
+	assert(num_edges * 2 == csr_idx[num_vertices]);
+	delete [] curr_pos;
+	//Debug::get_instance()->leave_function("Pattern::construct_csr");
+}
+
+Pattern::Pattern(VertexId num_vertices_, EdgeId num_edges_, Edge<Empty> *edges_): num_vertices(num_vertices_), num_edges(num_edges_) {
+	csr_idx = new EdgeId[num_vertices + 1];
+	csr_list = new Edge<Empty>[num_edges * 2];
+	edges = new Edge<Empty>[num_edges];
+	memcpy(edges, edges_, sizeof(Edge<Empty>) * num_edges);
+	construct_csr();
+}
+
+Pattern::~Pattern() {
+	delete [] csr_idx;
+	delete [] csr_list;
+	delete [] edges;
+}
+
+EdgeId Pattern::get_idx_by_edge_id(EdgeId edge_id) const {
+	EdgeId idx = num_edges;
+	for (EdgeId e_i = 0; e_i < num_edges; ++ e_i) {
+		if (edges[e_i].edge_id == edge_id) {
+			idx = e_i;
+			break;
+		}
+	}
+	assert(idx != num_edges);
+	return idx;
+}
+
+bool Pattern::is_vertex_mapping_correct(VertexId * vertex_mapping, const Pattern &pattern) {
+	if (num_edges != pattern.num_edges || num_vertices != pattern.num_vertices) {
+		return false;
+	}
+	for (EdgeId e_i = 0; e_i < num_edges; ++ e_i) {
+		VertexId src = edges[e_i].src;
+		VertexId dst = edges[e_i].dst;
+		EdgeId idx_p = pattern.get_idx_by_edge_id(edges[e_i].edge_id);
+		VertexId src_p = pattern.edges[idx_p].src;
+		VertexId dst_p = pattern.edges[idx_p].dst;
+		bool correctly_mapped = false;
+		if (vertex_mapping[src] == src_p && vertex_mapping[dst] == dst_p) {
+			correctly_mapped = true;
+		} else if (vertex_mapping[src] == dst_p && vertex_mapping[dst] == src_p) {
+			correctly_mapped = true;
+		}
+		if (correctly_mapped == false) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool Pattern::core_has_same_edge_ordering(VertexId src, VertexId dst, const Pattern &pattern) {
+	VertexId * vertex_mapping = new VertexId[num_vertices];
+	bool * is_matched = new bool[num_vertices];
+	bool * is_matched_p = new bool[num_vertices];
+	memset(is_matched, false, sizeof(bool) * num_vertices);
+	memset(is_matched_p, false, sizeof(bool) * num_vertices);
+	VertexId * queue = new VertexId[num_vertices];
+	VertexId queue_head = 0, queue_tail = 0;
+
+	EdgeId idx_p = pattern.get_idx_by_edge_id(0);
+	vertex_mapping[src] = pattern.edges[idx_p].src;
+	vertex_mapping[dst] = pattern.edges[idx_p].dst;
+	is_matched[src] = true;
+	is_matched[dst] = true;
+	is_matched_p[pattern.edges[idx_p].src] = true;
+	is_matched_p[pattern.edges[idx_p].dst] = true;
+	queue[queue_tail ++] = src;
+	queue[queue_tail ++] = dst;
+
+	bool is_success = true;
+
+	// BFS
+	while (queue_head < queue_tail) {
+		VertexId v = queue[queue_head ++];
+		for (EdgeId e_i = csr_idx[v]; e_i < csr_idx[v + 1]; ++ e_i) {
+			if (is_matched[csr_list[e_i].dst] == false) { // this neighbour is not matched yet
+				idx_p = pattern.get_idx_by_edge_id(csr_list[e_i].edge_id);
+				if (pattern.edges[idx_p].src == vertex_mapping[v]) {
+					if (is_matched_p[pattern.edges[idx_p].dst] == false) {
+						vertex_mapping[csr_list[e_i].dst] = pattern.edges[idx_p].dst;
+						is_matched[csr_list[e_i].dst] = true;
+						is_matched_p[pattern.edges[idx_p].dst] = true;
+						queue[queue_tail ++] = csr_list[e_i].dst;
+					} else {
+						is_success = false;
+						break;
+					}
+				} else if (pattern.edges[idx_p].dst == vertex_mapping[v]) {
+					if (is_matched_p[pattern.edges[idx_p].src] == false) {
+						vertex_mapping[csr_list[e_i].dst] = pattern.edges[idx_p].src;
+						is_matched[csr_list[e_i].dst] = true;
+						is_matched_p[pattern.edges[idx_p].src] = true;
+						queue[queue_tail ++] = csr_list[e_i].dst;
+					} else {
+						is_success = false;
+						break;
+					}
+				} else {
+					is_success = false;
+					break;
+				}
+			}
+		}
+		if (is_success == false) {
+			break;
+		}
+	}
+	for (VertexId v_i = 0; v_i < num_vertices; ++ v_i) {
+		if (is_matched[v_i] == false || is_matched_p[v_i] == false) {
+			is_success = false;
+			break;
+		}
+	}
+
+	if (! is_vertex_mapping_correct(vertex_mapping, pattern)) {
+		is_success = false;
+	}
+
+	delete [] vertex_mapping;
+	delete [] is_matched;
+	delete [] is_matched_p;
+	delete [] queue;
+
+	return is_success;
+}
+
+Edge<Empty>* Pattern::get_edges() {
+	return edges;
+}
+
+VertexId Pattern::get_num_vertices() {
+	return num_vertices;
+}
+
+EdgeId Pattern::get_num_edges() {
+	return num_edges;
+}
+
+bool Pattern::has_same_edge_ordering(const Pattern &pattern) {
+	if (num_vertices != pattern.num_vertices) {
+		return false;
+	}
+	if (num_edges != pattern.num_edges) {
+		return false;
+	}
+	EdgeId idx = get_idx_by_edge_id(0);
+	if (core_has_same_edge_ordering(edges[idx].src, edges[idx].dst, pattern)) {
+		return true;
+	}
+	if (core_has_same_edge_ordering(edges[idx].dst, edges[idx].src, pattern)) {
+		return true;
+	}
+	return false;
+}
+
+void Pattern::setup_edge_id_mapping(EdgeId *mapping) {
+	for (EdgeId e_i = 0; e_i < num_edges; ++ e_i) {
+		edges[e_i].edge_id = mapping[edges[e_i].edge_id];
+	}
+	for (EdgeId e_i = 0; e_i < num_edges * 2; ++ e_i) {
+		csr_list[e_i].edge_id = mapping[csr_list[e_i].edge_id];
+	}
+}
+
+bool Pattern::is_in_edges_list(Edge<Empty> edge) {
+	// TODO could be optimized using hash-table
+	for (EdgeId e_i = 0; e_i < num_edges; ++ e_i) {
+		if ((edges[e_i].src == edge.src && edges[e_i].dst == edge.dst) || (edges[e_i].src == edge.dst && edges[e_i].dst == edge.src)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Pattern::is_automorphic(VertexId num_vertices_, EdgeId num_edges_, const Edge<Empty> *edges_) {
+	if (num_vertices_ != num_vertices) {
+		return false;
+	}
+	if (num_edges_ != num_edges) {
+		return false;
+	}
+	for (EdgeId e_i = 0; e_i < num_edges; ++ e_i) {
+		if (! this->is_in_edges_list(edges_[e_i])) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool Pattern::is_automorphic(const Pattern &pattern) {
+	return this->is_automorphic(pattern.num_vertices, pattern.num_edges, pattern.edges);
+}
+
+void Pattern::setup_vertex_id_mapping(VertexId *mapping) {
+	for (EdgeId e_i = 0; e_i < num_edges; ++ e_i) {
+		edges[e_i].src = mapping[edges[e_i].src];
+		edges[e_i].dst = mapping[edges[e_i].dst];
+	}
+	construct_csr();
+}
+
+EdgeId* Pattern::get_csr_idx() {
+	return csr_idx;
+}
+
+Edge<Empty>* Pattern::get_csr_list() {
+	return csr_list;
+}
+
+// SamplerGenerator
+
+template<typename EdgeData>
+void SamplerGenerator<EdgeData>::generate_mapping(VertexId idx) {
+	if (idx == num_vertices) {
+		//{
+		//	std::string log_msg = "";
+		//	for (VertexId v_i = 0; v_i < num_vertices; ++ v_i) {
+		//		log_msg += std::to_string(mapping[v_i]) + " ";
+		//	}
+		//	Debug::get_instance()->log(log_msg);
+		//}
+		patterns[curr_pos]->setup_vertex_id_mapping(mapping);
+		++ curr_pos;
+		return ;
+	}
+	for (VertexId v_i = 0; v_i < num_vertices; ++ v_i) {
+		if (! is_used[v_i]) {
+			is_used[v_i] = true;
+			mapping[idx] = v_i;
+			generate_mapping(idx + 1);
+			is_used[v_i] = false;
+		}
+	}
+}
+
+template<typename EdgeData>
+bool SamplerGenerator<EdgeData>::canonicality_check(const MyList<Edge<EdgeData>> &edges, const Edge<EdgeData> new_edge) {
+	if (edges.list_size <= 1) return true;
+	bool found_neighbour = false;
+	for (int i = 0; i < edges.list_size; ++ i) {
+		if (found_neighbour == false) {
+			if (new_edge.src == edges.list[i].src || new_edge.src == edges.list[i].dst 
+			|| new_edge.dst == edges.list[i].src || new_edge.dst == edges.list[i].dst) {
+				found_neighbour = true;
+			}
+		} else {
+			if (edges.list[i].edge_id >= new_edge.edge_id) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+template<typename EdgeData>
+SamplerGenerator<EdgeData>::SamplerGenerator(Graph<EdgeData> * graph_, Pattern * pattern_): ZGraphInstance<EdgeData>(graph_) {
+	Debug::get_instance()->enter_function("SamplerGenerator::SamplerGenerator");
+	pattern = new Pattern(pattern_->get_num_vertices(), pattern_->get_num_edges(), pattern_->get_edges());
+	assert(pattern->get_num_vertices() >= 1);
+	assert(pattern->get_num_edges() >= 1);
+	num_vertices = pattern->get_num_vertices();
+	num_edges = pattern->get_num_edges();
+
+	num_patterns = 1;
+	for (VertexId v_i = 1; v_i <= num_vertices; ++ v_i) {
+		num_patterns *= v_i;
+	}
+	patterns = new Pattern* [num_patterns];
+	for (VertexId p_i = 0; p_i < num_patterns; ++ p_i) {
+		patterns[p_i] = new Pattern(num_vertices, num_edges, pattern->get_edges());
+	}
+	mapping = new VertexId[num_vertices];
+	is_used = new bool[num_vertices];
+	memset(is_used, false, sizeof(bool) * num_vertices);
+	curr_pos = 0;
+	//Debug::get_instance()->log("getting mappings");
+	generate_mapping(0);
+	//Debug::get_instance()->log("got mappings");
+
+	is_duplicated = new bool[num_patterns];
+	memset(is_duplicated, false, sizeof(bool) * num_patterns);
+	num_unique_patterns = 0;
+	for (VertexId p_i = 0; p_i < num_patterns; ++ p_i) {
+		for (VertexId p_j = 0; p_j < p_i; ++ p_j) {
+			if (! is_duplicated[p_j]) {
+				if (patterns[p_j]->is_automorphic(*patterns[p_i])) {
+					is_duplicated[p_i] = true;
+					break;
+				}
+			}
+		}
+		if (! is_duplicated[p_i]) {
+			++ num_unique_patterns;
+		}
+	}
+	unique_patterns = new Pattern* [num_unique_patterns];
+	VertexId tmp = 0;
+	for (VertexId p_i = 0; p_i < num_patterns; ++ p_i) {
+		if (! is_duplicated[p_i]) {
+			unique_patterns[tmp ++] = patterns[p_i];
+		}
+	}
+	assert(num_unique_patterns == tmp);
+	Debug::get_instance()->log("num unique patterns: ", num_unique_patterns, "/", num_patterns);
+	Debug::get_instance()->leave_function("SamplerGenerator::SamplerGenerator");
+}
+
+template<typename EdgeData>
+SamplerGenerator<EdgeData>::~SamplerGenerator() {
+	delete pattern;
+	for (VertexId p_i = 0; p_i < num_patterns; ++ p_i) {
+		delete patterns[p_i];
+	}
+	delete [] patterns;
+	delete [] mapping;
+	delete [] is_used;
+	delete [] is_duplicated;
+	delete [] unique_patterns;
+}
+
+template<typename EdgeData>
+double SamplerGenerator<EdgeData>::estimate() {
+	//Debug::get_instance()->enter_function("SamplerGenerator::estimate");
+	MyList<Edge<EdgeData>> sampled_edges;
+	SubGraph<EdgeData> sampled_subgraph;
+	const MyList<VertexId>& sampled_vertices = sampled_subgraph.get_vertices();
+	double p = 1.;
+
+	MyList<Edge<EdgeData>> first_edge;
+
+	//Debug::get_instance()->log("sampling first edge");
+	std::pair<Edge<EdgeData>, double> tmp_0 = this->sample_edge();
+	//Debug::get_instance()->log("got first edge");
+	if (tmp_0.second < 0) return 0;
+	p *= tmp_0.second;
+	first_edge.push_back(tmp_0.first);
+	sampled_edges.push_back(tmp_0.first);
+	sampled_subgraph.add_edge(tmp_0.first);
+
+	//Debug::get_instance()->log("sampling remained edge");
+	for (EdgeId e_i = 1; e_i < num_edges; ++ e_i) {
+		std::pair<Edge<EdgeData>, double> tmp = this->conditional_sample_edge(first_edge, sampled_vertices);
+		if (tmp.second < 0) return 0;
+		p *= tmp.second;
+		if (canonicality_check(sampled_edges, tmp.first) == false) return 0;
+		sampled_edges.push_back(tmp.first);
+		sampled_subgraph.add_edge(tmp.first);
+		if (sampled_vertices.list_size > num_vertices) return 0;
+	}
+	if (sampled_vertices.list_size != num_vertices) return 0;
+	//Debug::get_instance()->log("***** got remained edges *****");
+	//NetworkInterface::get_instance()->pause();
+
+	VertexId vertices[MAX_LIST_SIZE];
+	for (VertexId i = 0; i < num_vertices; ++ i) {
+		vertices[i] = sampled_vertices.list[i];
+	}
+	for (VertexId i = 0; i < num_vertices; ++ i) {
+		for (VertexId j = i + 1; j < num_vertices; ++ j) {
+			if (vertices[j] < vertices[i]) {
+				VertexId tmp = vertices[j];
+				vertices[j] = vertices[i];
+				vertices[i] = tmp;
+			}
+		}
+	}
+
+	Edge<Empty> edges[MAX_LIST_SIZE];
+	for (EdgeId e_i = 0; e_i < sampled_edges.list_size; ++ e_i) {
+		bool found_src = false;
+		for (VertexId i = 0; i < num_vertices; ++ i) {
+			if (sampled_edges.list[e_i].src == vertices[i]) {
+				found_src = true;
+				edges[e_i].src = i;
+				break;
+			}
+		}
+		assert(found_src);
+		bool found_dst = false;
+		for (VertexId i = 0; i < num_vertices; ++ i) {
+			if (sampled_edges.list[e_i].dst == vertices[i]) {
+				found_dst = true;
+				edges[e_i].dst = i;
+				break;
+			}
+		}
+		assert(found_dst);
+	}
+	for (VertexId p_i = 0; p_i < num_patterns; ++ p_i) { // could be changed to unique patterns TODO
+		if (patterns[p_i]->is_automorphic(num_vertices, num_edges, edges)) {
+			if (sampled_edges.list[0].edge_id >= sampled_edges.list[1].edge_id || 
+					sampled_edges.list[0].edge_id >= sampled_edges.list[2].edge_id ||
+					sampled_edges.list[1].edge_id >= sampled_edges.list[2].edge_id) {
+				Debug::get_instance()->log(sampled_subgraph);
+			}
+			return 1. / p;
+		}
+	}
+	//Debug::get_instance()->leave_function("SamplerGenerator::estimate");
+	return 0;
+}
+
+template<typename EdgeData>
+double SamplerGenerator<EdgeData>::get_num_sample_edge_calls() {
+	return 1;
+}
+
+template<typename EdgeData>
+double SamplerGenerator<EdgeData>::get_num_conditional_sample_edge_calls(); 
+
+template class SamplerGenerator<Empty>;
+
