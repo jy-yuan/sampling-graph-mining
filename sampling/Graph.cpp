@@ -90,12 +90,12 @@ int *Graph::sample(int num) {
                            csrList[j]);
         }
     }
-    int* sam = (int*) malloc(2+M+M+1+newList.size());
+    int *sam = (int *)malloc(2 + M + M + 1 + newList.size());
     sam[0] = M;
     sam[1] = newList.size();
-    std::copy(newExi.begin(), newExi.end(),&sam[2]);
-    std::copy(newInd.begin(), newInd.end(), &sam[2+M]);
-    memcpy(&sam[2+M+M+1], newList.data(), sizeof(int)*newList.size());
+    std::copy(newExi.begin(), newExi.end(), &sam[2]);
+    std::copy(newInd.begin(), newInd.end(), &sam[2 + M]);
+    memcpy(&sam[2 + M + M + 1], newList.data(), sizeof(int) * newList.size());
     return sam;
 }
 
