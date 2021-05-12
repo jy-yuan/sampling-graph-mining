@@ -22,13 +22,14 @@ void *sampling(void *Param) {
     int m = subgraph[0];
     int n = subgraph[1];
     int size = 2 * m + n + 3;
-    MPI_Send(subgraph, sizeof(subgraph), MPI_INT, g->source, SAMPLING_TAG, MPI_COMM_WORLD);
+    MPI_Send(subgraph, sizeof(subgraph), MPI_INT, g->source, SAMPLING_TAG,
+             MPI_COMM_WORLD);
     // return (void *)&m;
 }
 
 int main(int argc, char **argv) {
-    int num_vertex; // need init
-    int num_sampling; // need init
+    int num_vertex;    // need init
+    int num_sampling;  // need init
     int my_rank;
     int provided;
     bool single_thread = false;
@@ -67,7 +68,8 @@ int main(int argc, char **argv) {
                 EBStop::get_instance().print_res();
                 for (int i = COMP_INSTANCES + 1;
                      i <= COMP_INSTANCES + STOR_INSTANCES; i++) {
-                    MPI_Isend(stopbuf, 2, MPI_INT, i, SAMPLING_TAG, MPI_COMM_WORLD, &request);
+                    MPI_Isend(stopbuf, 2, MPI_INT, i, SAMPLING_TAG,
+                              MPI_COMM_WORLD, &request);
                 }
                 ended = true;
             }
@@ -98,10 +100,11 @@ int main(int argc, char **argv) {
         int arr[STOR_INSTANCES][2] = {0};  // random sizes
         int resultbuf[2] = {0};
         Graph graph = Graph();
-        
+
         while (1) {
             int work_no;
-            MPI_Recv(&work_no, 1, MPI_INT, 0, TASK_TAG, MPI_COMM_WORLD, &status);
+            MPI_Recv(&work_no, 1, MPI_INT, 0, TASK_TAG, MPI_COMM_WORLD,
+                     &status);
             if (work_no == 0) {
                 MPI_Finalize();
                 exit(0);
@@ -113,7 +116,8 @@ int main(int argc, char **argv) {
             }
             for (int i = 0; i < STOR_INSTANCES; i++) {
                 arr[i][1] = my_rank;
-                MPI_Isend(arr[i], 2, MPI_INT, COMP_INSTANCES + i + 1, SAMPLING_TAG, MPI_COMM_WORLD, &request);
+                MPI_Isend(arr[i], 2, MPI_INT, COMP_INSTANCES + i + 1,
+                          SAMPLING_TAG, MPI_COMM_WORLD, &request);
             }
             for (int i = 0; i < STOR_INSTANCES; i++) {
                 int size;
@@ -128,7 +132,7 @@ int main(int argc, char **argv) {
             int result = graph.count();
             resultbuf[0] = my_rank;
             resultbuf[1] = result;
-            MPI_Send(resultbuf, 2,MPI_INT,0, ESTIMATION_TAG, MPI_COMM_WORLD);
+            MPI_Send(resultbuf, 2, MPI_INT, 0, ESTIMATION_TAG, MPI_COMM_WORLD);
         }
     } else {
         /*
@@ -142,7 +146,8 @@ int main(int argc, char **argv) {
         graph.init();
         int samplingbuf[2] = {0};
         while (1) {
-            MPI_Recv(samplingbuf, 2, MPI_INT,MPI_ANY_SOURCE,SAMPLING_TAG, MPI_COMM_WORLD, &status);
+            MPI_Recv(samplingbuf, 2, MPI_INT, MPI_ANY_SOURCE, SAMPLING_TAG,
+                     MPI_COMM_WORLD, &status);
             int m = samplingbuf[0];
             int source = samplingbuf[1];
             if (source == 0) {
