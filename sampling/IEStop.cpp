@@ -20,34 +20,44 @@ double IEStop::sd() {
     return ss;
 }
 
+double IEStop::zscore(double a) {
+    if (a == 0.1) {
+        return 1.282;
+    } else if (a == 0.05) {
+        return 1.645;
+    } else if (a == 0.025) {
+        return 1.96;
+    } else if (a == 0.01) {
+        return 2.326;
+    } else if (a == 0.005) {
+        return 2.576;
+    } else {
+        return 1;
+    }
+}
+
 /*
 execute one loop (from t-1 to t, do not change t)
 return 0 if ready to stop
 */
 int IEStop::loop() {
-    double R = 1.0;
-    if (t > floor(pow(BETA, k))) {
-        k++;
-        double alpha = floor(pow(BETA, k)) / floor(pow(BETA, k - 1));
-        iex = -alpha * log((1 / pow(log(BETA, t), 1.1)) / 3)
+    if (t < MIN_SAMPLE) {
+        return 1;
     }
-    double c = sd() * sqrt(2 * iex / t) + 3 * R * iex / t;
-    lb = max(lb, mean() - c);
-    ub = min(ub, mean() + c);
-    if ((1 + eps) * lb >= (1 - eps) * ub) {
-        return 0;
+    if (zscore(alpha / 2) * sd() / (sqrt(t) * mean()) > delta) {
+        return 1;
     }
-    return 1;
+    return 0;
 }
 
-void IEStop::init(double epsilon, double deltad) {
+void IEStop::init(double alphaa, double deltad) {
     memset(ieexi, 0, MAX_SAMPLE * sizeof(bool));
     memset(iearr, 0, MAX_SAMPLE * sizeof(int));
     t = 0;
     k = 0;
     lb = 0;
     ub = INFIN;
-    eps = epsilon;
+    alpha = alphaa;
     delta = deltad;
 }
 
@@ -74,6 +84,6 @@ int IEStop::add(int rank, int x) {
 }
 
 void IEStop::print_res() {
-    double est = ((1 + eps) * lb + (1 - eps) * ub) / 2;
+    double est = mean();
     printf("Estimation: %f.", est);
 }

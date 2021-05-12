@@ -6,7 +6,7 @@
 #include <cstring>
 
 #define MAX_SAMPLE 10000
-#define BETA 10
+#define MIN_SAMPLE 10
 #define INFIN 1 << 20
 
 /*
@@ -20,7 +20,7 @@ class IEStop {
         static IEStop ieins;
         return ieins;
     }
-    void init(double epsilon, double deltad);
+    void init(double alphaa = 0.05, double deltad = 0.05);
     int add(int rank, int x);
     void print_res();
 
@@ -31,13 +31,14 @@ class IEStop {
     int k = 0;
     double lb = 0;
     double ub = INFIN;
-    double eps = 0.05;
-    double delta = 0.05;
+    double alpha;
+    double delta;
     double iex = 1;
     IEStop();
     ~IEStop(){};
     double mean();
     double sd();
+    double zscore(double a);
     int loop();
 };
 
