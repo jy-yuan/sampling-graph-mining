@@ -1,6 +1,11 @@
 #pragma once
 #include "IEStop.hpp"
 
+IEStop& IEStop::get_instance() {
+    static IEStop ieins;
+    return ieins;
+}
+
 double IEStop::mean() {
     double sum = 0;
     for (int i = 1; i <= t; i++) {

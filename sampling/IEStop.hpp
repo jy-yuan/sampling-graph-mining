@@ -16,10 +16,7 @@ based on central limit theorem
 
 class IEStop {
    public:
-    static IEStop& get_instance() {
-        static IEStop ieins;
-        return ieins;
-    }
+    static IEStop& get_instance();
     void init(double alphaa = 0.05, double deltad = 0.05);
     int add(int rank, int x);
     void print_res();
@@ -34,7 +31,7 @@ class IEStop {
     double alpha;
     double delta;
     double iex = 1;
-    IEStop();
+    IEStop(){};
     ~IEStop(){};
     double mean();
     double sd();

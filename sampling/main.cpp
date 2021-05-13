@@ -16,6 +16,8 @@
 #define SAMPLING_TAG 1
 #define ESTIMATION_TAG 2
 
+#define DEBUG
+
 /*
 pthread
 sampling and send (non-blocking) zipped graph to computation process
@@ -26,13 +28,25 @@ void *sampling(void *Param) {
     int m = subgraph[0];
     int n = subgraph[1];
     int size = 2 * m + n + 3;
+    for (int i = 0; i < size; i++) {
+        printf(" %d", subgraph[i]);
+    }
+#ifdef DEBUG
+    printf(
+        "Sampling process send graph (of size %d) to compute process no "
+        "%d.\nGraph:",
+        size, g->source);
+    for (int i = 0; i < size; i++) {
+        printf(" %d", subgraph[i]);
+    }
+#endif
     MPI_Send(subgraph, size, MPI_INT, g->source, SAMPLING_TAG, MPI_COMM_WORLD);
     // return (void *)&m;
 }
 
 int main(int argc, char **argv) {
-    int num_vertex;    // need init
-    int num_sampling;  // need init
+    int num_vertex = 12;    // need init
+    int num_sampling = 3;  // need init
     int my_rank;
     int provided;
     bool single_thread = false;
@@ -82,6 +96,10 @@ int main(int argc, char **argv) {
                     flag = false;
                 }
             }
+#ifdef DEBUG
+            printf("Main process send task %d to %d process.\n", workmap[dst],
+                   dst);
+#endif
             MPI_Send(&workmap[dst], 1, MPI_INT, dst, TASK_TAG, MPI_COMM_WORLD);
             if (flag) {
                 for (int i = COMP_INSTANCES + 1;
@@ -103,11 +121,14 @@ int main(int argc, char **argv) {
         int arr[STOR_INSTANCES][2] = {0};  // random sizes
         int resultbuf[2] = {0};
         Graph graph = Graph();
-
+        graph.M = num_vertex;
         while (1) {
             int work_no;
             MPI_Recv(&work_no, 1, MPI_INT, 0, TASK_TAG, MPI_COMM_WORLD,
                      &status);
+#ifdef DEBUG
+            printf("Compute process %d received task %d.\n", my_rank, work_no);
+#endif
             if (work_no == 0) {
                 MPI_Finalize();
                 exit(0);
@@ -117,6 +138,13 @@ int main(int argc, char **argv) {
             for (int i = 0; i < num_sampling; i++) {
                 arr[rand() % STOR_INSTANCES][0]++;
             }
+#ifdef DEBUG
+            printf("Compute process %d send sampling sizes:", my_rank);
+            for (int i = 0; i < STOR_INSTANCES; i++) {
+                printf(" %d", arr[i][0]);
+            }
+            printf("\n");
+#endif
             for (int i = 0; i < STOR_INSTANCES; i++) {
                 arr[i][1] = my_rank;
                 MPI_Isend(arr[i], 2, MPI_INT, COMP_INSTANCES + i + 1,
@@ -130,11 +158,26 @@ int main(int argc, char **argv) {
                 int *buf = (int *)malloc(size * sizeof(int));
                 MPI_Recv(buf, size, MPI_INT, MPI_ANY_SOURCE, SAMPLING_TAG,
                          MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                graph.join(buf);
+#ifdef DEBUG
+                printf(
+                    "Compute process %d received sampling of size %d.\nZipped "
+                    "graph: ",
+                    my_rank, size);
+                for (int i = 0; i < size; i++) {
+                    printf("%d ", buf[i]);
+                }
+#endif
+                if (graph.join(buf) != 0) {
+                    printf("Join graph failed.\n");
+                }
             }
             int result = graph.count();
             resultbuf[0] = my_rank;
             resultbuf[1] = result;
+#ifdef DEBUG
+            printf("Compute process %d: estimation result %d process.\n",
+                   my_rank, result);
+#endif
             MPI_Send(resultbuf, 2, MPI_INT, 0, ESTIMATION_TAG, MPI_COMM_WORLD);
         }
     } else {

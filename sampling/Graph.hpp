@@ -7,11 +7,11 @@
 #include <vector>
 
 class Graph {
-    std::vector<int> verExi;
     std::vector<int> vertexes;
+    std::vector<int> verExi;
+    std::vector<int> verDeg;
     std::vector<int> csrInd;
     std::vector<int> csrList;
-    int M, N;
 
    public:
     Graph(){};
@@ -21,6 +21,7 @@ class Graph {
     int* sample(int num);
     int count();
     int m, source;  // for sampling
+    int M, N;
 };
 
 #endif
