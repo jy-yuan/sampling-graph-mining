@@ -14,13 +14,15 @@ int Graph::init(const std::string dir) {
     FILE *pFile = fopen(dir.c_str(), "r");
     fscanf(pFile, "%d %d", &M, &N);
     verExi.resize(M);
+    verDeg.resize(M);
     csrInd.resize(M + 1);
-    csrList.resize(N);
+    csrList.reserve(N);
     int u, v;
     for (int i = 0; i < N; i++) {
         fscanf(pFile, "%d %d", &u, &v);
         verExi[u] = 1;
-        csrList[csrInd[u]] = v;
+        verDeg[u]++;
+        csrList.insert(csrList.begin() + csrInd[u], v);
         for (int j = u + 1; j <= M; j++) {
             csrInd[j]++;
         }
@@ -40,7 +42,7 @@ zipgraph is a data structure of graph (easy to trans by MPI)
 contains,
 int: num of vertex
 int: num of edge
-array: whether the vertex exits
+array: whether the vertex exits TODO:optimize
 array: csr index
 array: csr list
 */
@@ -58,9 +60,11 @@ int Graph::join(int *zipgraph) {
         verExi[i] = (int)(newExi[i] && verExi[i]);
     }
     for (int i = 0; i < m; i++) {
+        csrInd[i + 1] = csrInd[i] + verDeg[i];
         for (int j = newInd[i]; j < newInd[i + 1]; j++) {
             csrList.insert(csrList.begin() + csrInd[i + 1]++, newList[j]);
         }
+        verDeg[i] = verDeg[i] + newInd[i + 1] - newInd[i];
     }
     assert(csrList.size() == N + n);
     assert(csrInd[m] == csrList.size());
@@ -85,12 +89,16 @@ int *Graph::sample(int num) {
             a = rand() % vertexes.size();
         }
         newExi[vertexes[a]] = 1;
-        for (int j = csrInd[vertexes[a]]; j < csrInd[vertexes[a] + 1]; j++) {
-            newList.insert(newList.begin() + newInd[vertexes[a] + 1]++,
-                           csrList[j]);
+    }
+    for (int i = 0; i < M; i++) {
+        newInd[i + 1] = newInd[i];
+        if (newExi[i]) {
+            for (int j = csrInd[i]; j < csrInd[i + 1]; j++) {
+                newList.insert(newList.begin() + newInd[i + 1]++, csrInd[j]);
+            }
         }
     }
-    int *sam = (int *)malloc(2 + M + M + 1 + newList.size());
+    int *sam = (int *)malloc((2 + M + M + 1 + newList.size()) * sizeof(int));
     sam[0] = M;
     sam[1] = newList.size();
     std::copy(newExi.begin(), newExi.end(), &sam[2]);
@@ -99,7 +107,7 @@ int *Graph::sample(int num) {
     return sam;
 }
 
-// naive implementation of sprecise count
+// naive implementation of precise count
 int Graph::count() {
     int count = 0;
     for (int i = 0; i < M; i++) {
