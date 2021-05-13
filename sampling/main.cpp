@@ -4,9 +4,13 @@
 
 #include "EBStop.hpp"
 #include "Graph.hpp"
+#include "IEStop.hpp"
 
-#define COMP_INSTANCES 4
-#define STOR_INSTANCES 4
+#define COMP_INSTANCES 2
+#define STOR_INSTANCES 2
+#define ALPHA 0.05
+#define DELTA 0.05
+#define GRAPH_DIR "graph"
 
 #define TASK_TAG 0
 #define SAMPLING_TAG 1
@@ -22,8 +26,7 @@ void *sampling(void *Param) {
     int m = subgraph[0];
     int n = subgraph[1];
     int size = 2 * m + n + 3;
-    MPI_Send(subgraph, sizeof(subgraph), MPI_INT, g->source, SAMPLING_TAG,
-             MPI_COMM_WORLD);
+    MPI_Send(subgraph, size, MPI_INT, g->source, SAMPLING_TAG, MPI_COMM_WORLD);
     // return (void *)&m;
 }
 
@@ -53,7 +56,7 @@ int main(int argc, char **argv) {
         int dst = 1;
         int estimation;
         int stopbuf[2] = {0};
-        EBStop::get_instance().init(0.05, 0.05);
+        IEStop::get_instance().init(ALPHA, DELTA);
         for (; work_no <= COMP_INSTANCES; work_no++) {
             workmap[dst++] = work_no;
             MPI_Send(&work_no, 1, MPI_INT, dst, TASK_TAG, MPI_COMM_WORLD);
@@ -64,13 +67,8 @@ int main(int argc, char **argv) {
                      MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             dst = result[0];
             estimation = result[1];
-            if (EBStop::get_instance().add(workmap[dst], estimation) == 0) {
-                EBStop::get_instance().print_res();
-                for (int i = COMP_INSTANCES + 1;
-                     i <= COMP_INSTANCES + STOR_INSTANCES; i++) {
-                    MPI_Isend(stopbuf, 2, MPI_INT, i, SAMPLING_TAG,
-                              MPI_COMM_WORLD, &request);
-                }
+            if (IEStop::get_instance().add(workmap[dst], estimation) == 0) {
+                IEStop::get_instance().print_res();
                 ended = true;
             }
             if (ended) {
@@ -86,6 +84,11 @@ int main(int argc, char **argv) {
             }
             MPI_Send(&workmap[dst], 1, MPI_INT, dst, TASK_TAG, MPI_COMM_WORLD);
             if (flag) {
+                for (int i = COMP_INSTANCES + 1;
+                     i <= COMP_INSTANCES + STOR_INSTANCES; i++) {
+                    MPI_Send(stopbuf, 2, MPI_INT, i, SAMPLING_TAG,
+                             MPI_COMM_WORLD);
+                }
                 MPI_Finalize();
                 exit(0);
             }
@@ -126,7 +129,7 @@ int main(int argc, char **argv) {
                 MPI_Get_count(&status, MPI_INT, &size);
                 int *buf = (int *)malloc(size * sizeof(int));
                 MPI_Recv(buf, size, MPI_INT, MPI_ANY_SOURCE, SAMPLING_TAG,
-                         MPI_COMM_WORLD, MPI_STATUS_IGNORE);  // maybe problem
+                         MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 graph.join(buf);
             }
             int result = graph.count();
@@ -143,7 +146,8 @@ int main(int argc, char **argv) {
         */
         Graph graph = Graph();
         pthread_t threads[COMP_INSTANCES];
-        graph.init();
+        bool threadinit[COMP_INSTANCES] = {false};
+        graph.init(GRAPH_DIR);
         int samplingbuf[2] = {0};
         while (1) {
             MPI_Recv(samplingbuf, 2, MPI_INT, MPI_ANY_SOURCE, SAMPLING_TAG,
@@ -159,6 +163,11 @@ int main(int argc, char **argv) {
             if (single_thread) {
                 sampling((void *)&graph);
             } else {
+                if (threadinit[source - 1]) {
+                    pthread_join(threads[source - 1], NULL);
+                } else {
+                    threadinit[source - 1] = true;
+                }
                 pthread_create(&threads[source - 1], NULL, sampling, &graph);
             }
         }
