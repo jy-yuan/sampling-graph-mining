@@ -28,25 +28,21 @@ void *sampling(void *Param) {
     int m = subgraph[0];
     int n = subgraph[1];
     int size = 2 * m + n + 3;
-    for (int i = 0; i < size; i++) {
-        printf(" %d", subgraph[i]);
-    }
 #ifdef DEBUG
-    printf(
-        "Sampling process send graph (of size %d) to compute process no "
-        "%d.\nGraph:",
-        size, g->source);
+    printf("Sampling process send graph (of size %d) to compute process no %d:",
+           size, g->source);
     for (int i = 0; i < size; i++) {
         printf(" %d", subgraph[i]);
     }
+    printf("\n");
 #endif
     MPI_Send(subgraph, size, MPI_INT, g->source, SAMPLING_TAG, MPI_COMM_WORLD);
     // return (void *)&m;
 }
 
 int main(int argc, char **argv) {
-    int num_vertex = 12;    // need init
-    int num_sampling = 3;  // need init
+    int num_vertex = 30;   // need init
+    int num_sampling = 5;  // need init
     int my_rank;
     int provided;
     bool single_thread = false;
@@ -72,8 +68,9 @@ int main(int argc, char **argv) {
         int stopbuf[2] = {0};
         IEStop::get_instance().init(ALPHA, DELTA);
         for (; work_no <= COMP_INSTANCES; work_no++) {
-            workmap[dst++] = work_no;
+            workmap[dst] = work_no;
             MPI_Send(&work_no, 1, MPI_INT, dst, TASK_TAG, MPI_COMM_WORLD);
+            dst++;
         }
         while (1) {
             int result[2];
@@ -120,8 +117,6 @@ int main(int argc, char **argv) {
         */
         int arr[STOR_INSTANCES][2] = {0};  // random sizes
         int resultbuf[2] = {0};
-        Graph graph = Graph();
-        graph.M = num_vertex;
         while (1) {
             int work_no;
             MPI_Recv(&work_no, 1, MPI_INT, 0, TASK_TAG, MPI_COMM_WORLD,
@@ -134,7 +129,7 @@ int main(int argc, char **argv) {
                 exit(0);
             }
             memset(arr, 0, 2 * STOR_INSTANCES * sizeof(int));
-            srand(time(0));
+            srand(rand());
             for (int i = 0; i < num_sampling; i++) {
                 arr[rand() % STOR_INSTANCES][0]++;
             }
@@ -150,22 +145,26 @@ int main(int argc, char **argv) {
                 MPI_Isend(arr[i], 2, MPI_INT, COMP_INSTANCES + i + 1,
                           SAMPLING_TAG, MPI_COMM_WORLD, &request);
             }
+            Graph graph = Graph(); // new sampling graph
+            graph.init(num_vertex);
             for (int i = 0; i < STOR_INSTANCES; i++) {
                 int size;
                 MPI_Probe(MPI_ANY_SOURCE, SAMPLING_TAG, MPI_COMM_WORLD,
                           &status);
                 MPI_Get_count(&status, MPI_INT, &size);
+#ifdef DEBUG
+                printf("Compute process %d probed sampling of size %d.\n",
+                       my_rank, size);
+#endif
                 int *buf = (int *)malloc(size * sizeof(int));
-                MPI_Recv(buf, size, MPI_INT, MPI_ANY_SOURCE, SAMPLING_TAG,
+                MPI_Recv(buf, size, MPI_INT, status.MPI_SOURCE, SAMPLING_TAG,
                          MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 #ifdef DEBUG
-                printf(
-                    "Compute process %d received sampling of size %d.\nZipped "
-                    "graph: ",
-                    my_rank, size);
+                printf("Compute process %d received Zipped graph: ", my_rank);
                 for (int i = 0; i < size; i++) {
                     printf("%d ", buf[i]);
                 }
+                printf("\n");
 #endif
                 if (graph.join(buf) != 0) {
                     printf("Join graph failed.\n");
@@ -175,8 +174,8 @@ int main(int argc, char **argv) {
             resultbuf[0] = my_rank;
             resultbuf[1] = result;
 #ifdef DEBUG
-            printf("Compute process %d: estimation result %d process.\n",
-                   my_rank, result);
+            printf("Compute process %d: estimation result %d.\n", my_rank,
+                   result);
 #endif
             MPI_Send(resultbuf, 2, MPI_INT, 0, ESTIMATION_TAG, MPI_COMM_WORLD);
         }
@@ -190,7 +189,7 @@ int main(int argc, char **argv) {
         Graph graph = Graph();
         pthread_t threads[COMP_INSTANCES];
         bool threadinit[COMP_INSTANCES] = {false};
-        graph.init(GRAPH_DIR);
+        graph.init_from_file(GRAPH_DIR);
         int samplingbuf[2] = {0};
         while (1) {
             MPI_Recv(samplingbuf, 2, MPI_INT, MPI_ANY_SOURCE, SAMPLING_TAG,
