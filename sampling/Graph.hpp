@@ -16,7 +16,8 @@ class Graph {
    public:
     Graph(){};
     ~Graph(){};
-    int init(const std::string dir = "graph");
+    int init(int m);
+    int init_from_file(const std::string dir = "graph");
     int join(int* zipgraph);
     int* sample(int num);
     int count();
