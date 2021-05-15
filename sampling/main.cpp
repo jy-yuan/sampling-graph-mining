@@ -16,7 +16,7 @@
 #define SAMPLING_TAG 1
 #define ESTIMATION_TAG 2
 
-#define DEBUG
+// #define DEBUG
 
 /*
 pthread
@@ -78,13 +78,13 @@ int main(int argc, char **argv) {
                      MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             dst = result[0];
             estimation = result[1];
-            if (IEStop::get_instance().add(workmap[dst], estimation) == 0) {
-                IEStop::get_instance().print_res();
-                ended = true;
-            }
             if (ended) {
                 workmap[dst] = 0;
             } else {
+                if (IEStop::get_instance().add(workmap[dst], estimation) == 0) {
+                    IEStop::get_instance().print_res();
+                    ended = true;
+                }
                 workmap[dst] = work_no++;
             }
             bool flag = true;  // all exit
@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
                 MPI_Isend(arr[i], 2, MPI_INT, COMP_INSTANCES + i + 1,
                           SAMPLING_TAG, MPI_COMM_WORLD, &request);
             }
-            Graph graph = Graph(); // new sampling graph
+            Graph graph = Graph();  // new sampling graph
             graph.init(num_vertex);
             for (int i = 0; i < STOR_INSTANCES; i++) {
                 int size;
