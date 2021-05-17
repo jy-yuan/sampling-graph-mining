@@ -6,8 +6,8 @@
 #include "Graph.hpp"
 #include "IEStop.hpp"
 
-#define COMP_INSTANCES 4
-#define STOR_INSTANCES 4
+#define COMP_INSTANCES 2
+#define STOR_INSTANCES 2
 #define ALPHA 0.05
 #define DELTA 0.05
 #define GRAPH_DIR "graph"
@@ -18,25 +18,32 @@
 
 #define DEBUG
 
+struct Samplepara {
+    int m;
+    int source;
+    Graph *g;
+};
+
 /*
 pthread
 sampling and send (non-blocking) zipped graph to computation process
 */
 void *sampling(void *Param) {
-    Graph *g = (Graph *)Param;
-    int *subgraph = g->sample(g->m);
+    Samplepara* sa = (Samplepara*) Param;
+    Graph *g = sa->g;
+    int *subgraph = g->sample(sa->m);
     int m = subgraph[0];
     int n = subgraph[1];
     int size = 2 * m + n + 3;
 #ifdef DEBUG
     printf("Sampling process send graph (of size %d) to compute process no %d:",
-           size, g->source);
+           size, sa->source);
     for (int i = 0; i < size; i++) {
         printf(" %d", subgraph[i]);
     }
     printf("\n");
 #endif
-    MPI_Send(subgraph, size, MPI_INT, g->source, SAMPLING_TAG, MPI_COMM_WORLD);
+    MPI_Send(subgraph, size, MPI_INT, sa->source, SAMPLING_TAG, MPI_COMM_WORLD);
     // return (void *)&m;
 }
 
@@ -94,7 +101,7 @@ int main(int argc, char **argv) {
                 }
             }
 #ifdef DEBUG
-            printf("Main process send task %d to %d process.\n", workmap[dst],
+            printf("Main process send task %d to process %d.\n", workmap[dst],
                    dst);
 #endif
             MPI_Send(&workmap[dst], 1, MPI_INT, dst, TASK_TAG, MPI_COMM_WORLD);
@@ -196,21 +203,28 @@ int main(int argc, char **argv) {
                      MPI_COMM_WORLD, &status);
             int m = samplingbuf[0];
             int source = samplingbuf[1];
+#ifdef DEBUG
+            printf(
+                "Store process %d received sampling sizes %d from process %d\n",
+                my_rank, m, source);
+#endif
             if (source == 0) {
                 MPI_Finalize();
                 exit(0);
             }
-            graph.source = source;
-            graph.m = m;
+            Samplepara sa;
+            sa.source = source;
+            sa.m = m;
+            sa.g = &graph;
             if (single_thread) {
-                sampling((void *)&graph);
+                sampling((void *)&sa);
             } else {
                 if (threadinit[source - 1]) {
                     pthread_join(threads[source - 1], NULL);
                 } else {
                     threadinit[source - 1] = true;
                 }
-                pthread_create(&threads[source - 1], NULL, sampling, &graph);
+                pthread_create(&threads[source - 1], NULL, sampling, &sa);
             }
         }
     }

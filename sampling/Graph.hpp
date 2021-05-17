@@ -23,7 +23,6 @@ class Graph {
     int join(int* zipgraph);
     int* sample(int num);
     int count();
-    int m, source;  // for sampling
     int M, N;
 };
 
