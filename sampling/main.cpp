@@ -197,6 +197,7 @@ int main(int argc, char **argv) {
         */
         Graph graph = Graph();
         pthread_t threads[COMP_INSTANCES];
+        Samplepara sa[COMP_INSTANCES];
         bool threadinit[COMP_INSTANCES] = {false};
         graph.init_from_file(GRAPH_DIR);
         int samplingbuf[2] = {0};
@@ -214,10 +215,9 @@ int main(int argc, char **argv) {
                 MPI_Finalize();
                 exit(0);
             }
-            Samplepara sa;
-            sa.source = source;
-            sa.m = m;
-            sa.g = &graph;
+            sa[source - 1].source = source;
+            sa[source - 1].m = m;
+            sa[source - 1].g = &graph;
             if (single_thread) {
                 sampling((void *)&sa);
             } else {
@@ -227,7 +227,7 @@ int main(int argc, char **argv) {
                     threadinit[source - 1] = true;
                 }
                 pthread_create(&(threads[source - 1]), NULL, sampling,
-                               (void *)&sa);
+                               (void *)&(sa[source - 1]));
             }
         }
     }
