@@ -29,7 +29,7 @@ pthread
 sampling and send (non-blocking) zipped graph to computation process
 */
 void *sampling(void *Param) {
-    Samplepara* sa = (Samplepara*) Param;
+    Samplepara *sa = (Samplepara *)Param;
     Graph *g = sa->g;
     int *subgraph = g->sample(sa->m);
     int m = subgraph[0];
@@ -43,7 +43,9 @@ void *sampling(void *Param) {
     }
     printf("\n");
 #endif
-    MPI_Send(subgraph, size, MPI_INT, sa->source, SAMPLING_TAG, MPI_COMM_WORLD);
+    // MPI_Request request;
+    MPI_Send(subgraph, size, MPI_INT, sa->source, SAMPLING_TAG,
+             MPI_COMM_WORLD);  // or mpi isend?
     // return (void *)&m;
 }
 
@@ -224,7 +226,8 @@ int main(int argc, char **argv) {
                 } else {
                     threadinit[source - 1] = true;
                 }
-                pthread_create(&threads[source - 1], NULL, sampling, &sa);
+                pthread_create(&(threads[source - 1]), NULL, sampling,
+                               (void *)&sa);
             }
         }
     }
