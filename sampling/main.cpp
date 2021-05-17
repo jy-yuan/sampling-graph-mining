@@ -6,8 +6,8 @@
 #include "Graph.hpp"
 #include "IEStop.hpp"
 
-#define COMP_INSTANCES 2
-#define STOR_INSTANCES 2
+#define COMP_INSTANCES 4
+#define STOR_INSTANCES 4
 #define ALPHA 0.05
 #define DELTA 0.05
 #define GRAPH_DIR "graph"
@@ -16,7 +16,7 @@
 #define SAMPLING_TAG 1
 #define ESTIMATION_TAG 2
 
-// #define DEBUG
+#define DEBUG
 
 /*
 pthread
