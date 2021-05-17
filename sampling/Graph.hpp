@@ -3,8 +3,9 @@
 
 #pragma once
 #include <cstdio>
-#include <string>
+#include <cstring>
 #include <vector>
+#include <cassert>
 
 class Graph {
     std::vector<int> vertexes;

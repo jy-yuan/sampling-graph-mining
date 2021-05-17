@@ -6,8 +6,8 @@ main: main.o graph.o iestop.o
 main.o:
 	mpicxx -pthread -c main.cpp
 
-graph.o: graph.cpp graph.hpp
-	g++ -c graph.cpp
+graph.o: Graph.cpp Graph.hpp
+	g++ -c Graph.cpp
 
 iestop.o: IEStop.cpp IEStop.hpp
 	g++ -c IEStop.cpp
