@@ -123,9 +123,9 @@ int *Graph::sample(int num) {
 // naive implementation of precise count
 int Graph::count() {
     int count = 0;
-    printf("verExi:");
+    // printf("verExi:");
     for (int i = 0; i < M; i++) {
-        printf(" %d", verExi[i]);
+        // printf(" %d", verExi[i]);
         if (verExi[i]) count++;
     }
     printf("\n");
