@@ -6,11 +6,14 @@
 #include "Graph.hpp"
 #include "IEStop.hpp"
 
+// const need to be sent from argv
 #define COMP_INSTANCES 2
 #define STOR_INSTANCES 2
 #define ALPHA 0.05
 #define DELTA 0.05
 #define GRAPH_DIR "graph"
+#define NUM_VERTEX 30
+#define NUM_SAMPLING 5
 
 #define TASK_TAG 0
 #define SAMPLING_TAG 1
@@ -49,9 +52,10 @@ void *sampling(void *Param) {
     // return (void *)&m;
 }
 
+/*
+argv:
+*/
 int main(int argc, char **argv) {
-    int num_vertex = 30;   // need init
-    int num_sampling = 5;  // need init
     int my_rank;
     int provided;
     bool single_thread = false;
@@ -139,7 +143,7 @@ int main(int argc, char **argv) {
             }
             memset(arr, 0, 2 * STOR_INSTANCES * sizeof(int));
             srand(rand());
-            for (int i = 0; i < num_sampling; i++) {
+            for (int i = 0; i < NUM_SAMPLING; i++) {
                 arr[rand() % STOR_INSTANCES][0]++;
             }
 #ifdef DEBUG
@@ -155,7 +159,7 @@ int main(int argc, char **argv) {
                           SAMPLING_TAG, MPI_COMM_WORLD, &request);
             }
             Graph graph = Graph();  // new sampling graph
-            graph.init(num_vertex);
+            graph.init(NUM_VERTEX);
             for (int i = 0; i < STOR_INSTANCES; i++) {
                 int size;
                 MPI_Probe(MPI_ANY_SOURCE, SAMPLING_TAG, MPI_COMM_WORLD,
