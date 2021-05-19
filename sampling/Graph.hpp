@@ -23,6 +23,7 @@ class Graph {
     int join(int* zipgraph);
     int* sample(int num);
     int count();
+    int count_triangle();
     int M, N;
 };
 
