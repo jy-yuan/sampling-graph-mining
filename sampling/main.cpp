@@ -41,9 +41,9 @@ void *sampling(void *Param) {
 #ifdef DEBUG
     printf("Sampling process send graph (of size %d) to compute process no %d:",
            size, sa->source);
-    for (int i = 0; i < size; i++) {
-        printf(" %d", subgraph[i]);
-    }
+    // for (int i = 0; i < size; i++) {
+    //     printf(" %d", subgraph[i]);
+    // }
     printf("\n");
 #endif
     // MPI_Request request;
@@ -174,9 +174,9 @@ int main(int argc, char **argv) {
                          MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 #ifdef DEBUG
                 printf("Compute process %d received Zipped graph: ", my_rank);
-                for (int i = 0; i < size; i++) {
-                    printf("%d ", buf[i]);
-                }
+                // for (int i = 0; i < size; i++) {
+                //     printf("%d ", buf[i]);
+                // }
                 printf("\n");
 #endif
                 if (graph.join(buf) != 0) {

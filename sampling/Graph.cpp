@@ -120,7 +120,7 @@ int *Graph::sample(int num) {
     return sam;
 }
 
-// naive implementation of precise count
+// naive implementation, count vertexes
 int Graph::count() {
     int count = 0;
     // printf("verExi:");
@@ -130,4 +130,9 @@ int Graph::count() {
     }
     printf("\n");
     return count;
+}
+
+// naive implementation of triangle counting
+int Graph::count_triangle() {
+    return 0;
 }
