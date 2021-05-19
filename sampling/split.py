@@ -55,4 +55,4 @@ if __name__ == "__main__":
         with open(str(i) + ".graph", "r+") as f:
             content = f.read()
             f.seek(0,0)
-            f.write(str(maxnode) + ' ' + str(edges_count) +'\n' + content)
+            f.write(str(maxnode+1) + ' ' + str(edges_count) +'\n' + content)
