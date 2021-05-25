@@ -26,7 +26,7 @@ if __name__ == "__main__":
     graph = {}
     with open(path, "r") as f:
         while 1:
-            lines = f.readlines(1 >> 30)
+            lines = f.readlines(1 << 30)
             if not lines:
                 break
             else:
