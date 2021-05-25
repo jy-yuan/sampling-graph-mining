@@ -19,7 +19,9 @@ def genLines(u, vs):
 if __name__ == "__main__":
     n = 2
     directed = True
-    path = "../datasets/friendster/dataset/com-friendster.ungraph.txt"
+    # path = "../datasets/friendster/dataset/com-friendster.ungraph.txt"
+    # path = "../datasets/twitter/dataset/twitter-2010.txt"
+    path = "../datasets/patent/dataset/cit-Patents.txt"
     # path = "../datasets/youtube/dataset/com-youtube.ungraph.txt"
     # path = "../datasets/wiki-vote/dataset/wiki-Vote.txt"
     # path = "graph"
