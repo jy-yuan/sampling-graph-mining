@@ -32,6 +32,7 @@ int Graph::init_from_file(const std::string dir) {
     int u, v;
     for (int i = 0; i < N; i++) {
         fscanf(pFile, "%d %d", &u, &v);
+        printf("%d\n", i);
         verExi[u] = 1;
         verDeg[u]++;
         csrList.insert(csrList.begin() + csrInd[u], v);
@@ -134,5 +135,6 @@ int Graph::count() {
 
 // naive implementation of triangle counting
 int Graph::count_triangle() {
+    
     return 0;
 }
