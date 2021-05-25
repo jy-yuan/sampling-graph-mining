@@ -73,6 +73,7 @@ int main(int argc, char **argv) {
         send (sampling) Work No. to each Computation process
         receive results from every work and determine whether stop
         */
+        double time;
         bool ended = false;
         int work_no = 1;
         int workmap[COMP_INSTANCES + 1];
@@ -80,6 +81,7 @@ int main(int argc, char **argv) {
         int estimation;
         int stopbuf[2] = {0};
         IEStop::get_instance().init(ALPHA, DELTA);
+        time = MPI_Wtime();
         for (; work_no <= COMP_INSTANCES; work_no++) {
             workmap[dst] = work_no;
             MPI_Send(&work_no, 1, MPI_INT, dst, TASK_TAG, MPI_COMM_WORLD);
@@ -97,6 +99,8 @@ int main(int argc, char **argv) {
                 if (IEStop::get_instance().add(workmap[dst], estimation) == 0) {
                     IEStop::get_instance().print_res();
                     ended = true;
+                    time = MPI_Wtime() - time;
+                    printf("Full wall time = %f ms\n", time * 1000);
                 }
                 workmap[dst] = work_no++;
             }
@@ -203,10 +207,12 @@ int main(int argc, char **argv) {
         pthread_t threads[COMP_INSTANCES];
         Samplepara sa[COMP_INSTANCES];
         bool threadinit[COMP_INSTANCES] = {false};
-        std::string str = std::to_string(my_rank-COMP_INSTANCES-1) + ".graph";
+        std::string str =
+            std::to_string(my_rank - COMP_INSTANCES - 1) + ".graph";
         printf("storage process %d read graph %s\n", my_rank, str.c_str());
         graph.init_from_file(str.c_str());
-        printf("storage process %d read graph %s done.\n", my_rank, str.c_str());
+        printf("storage process %d read graph %s done.\n", my_rank,
+               str.c_str());
         int samplingbuf[2] = {0};
         while (1) {
             MPI_Recv(samplingbuf, 2, MPI_INT, MPI_ANY_SOURCE, SAMPLING_TAG,
