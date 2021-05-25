@@ -12,8 +12,8 @@
 #define ALPHA 0.05
 #define DELTA 0.05
 #define GRAPH_DIR "graph"
-#define NUM_VERTEX 8275
-#define NUM_SAMPLING 100
+#define NUM_VERTEX 1147805
+#define NUM_SAMPLING 1000
 
 #define TASK_TAG 0
 #define SAMPLING_TAG 1
@@ -206,6 +206,7 @@ int main(int argc, char **argv) {
         std::string str = std::to_string(my_rank-COMP_INSTANCES-1) + ".graph";
         printf("storage process %d read graph %s\n", my_rank, str.c_str());
         graph.init_from_file(str.c_str());
+        printf("storage process %d read graph %s done.\n", my_rank, str.c_str());
         int samplingbuf[2] = {0};
         while (1) {
             MPI_Recv(samplingbuf, 2, MPI_INT, MPI_ANY_SOURCE, SAMPLING_TAG,
