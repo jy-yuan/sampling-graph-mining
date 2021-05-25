@@ -1,5 +1,24 @@
 #include "Graph.hpp"
 
+inline int getint(FILE *stream){
+    char c = fgetc(stream);
+    int symbol = 1;
+    while((c < '0' || c > '9') && c != '-'){
+        c = fgetc(stream);
+    }
+    if(c == '-'){
+        symbol = -1;
+        c = fgetc(stream);
+    }
+    int x = c - '0';
+    c = fgetc(stream);
+    while('0' <= c && c <= '9'){
+        x = x*10 + c - '0';
+        c = fgetc(stream);
+    }
+    return x*symbol;
+}
+
 /*
 just init and allocate space
 */
@@ -24,14 +43,18 @@ where M is # of vertexes and N is # of edges
 */
 int Graph::init_from_file(const std::string dir) {
     FILE *pFile = fopen(dir.c_str(), "r");
-    fscanf(pFile, "%d %d", &M, &N);
+    M = fgetc(pFile);
+    N = fgetc(pFile);
+    // fscanf(pFile, "%d %d", &M, &N);
     verExi.resize(M);
     verDeg.resize(M);
     csrInd.resize(M + 1);
     csrList.reserve(N);
     int u, v;
     for (int i = 0; i < N; i++) {
-        fscanf(pFile, "%d %d", &u, &v);
+        // fscanf(pFile, "%d %d", &u, &v);
+        u = fgetc(pFile);
+        v = fgetc(pFile);
         printf("%d\n", i);
         verExi[u] = 1;
         verDeg[u]++;
