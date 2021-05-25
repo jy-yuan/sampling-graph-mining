@@ -66,6 +66,9 @@ int Graph::init_from_file(const std::string dir) {
         verDeg[u]++;
         csrList.insert(csrList.begin() + csrInd[u + 1]++, v);
     }
+    for (int i = tmp + 1; i <= M; i++) {
+        csrInd[i + 1] = csrInd[i];
+    }
     for (int i = 0; i < M; i++) {
         if (verExi[i]) {
             vertexes.push_back(i);
@@ -106,8 +109,8 @@ int Graph::join(int *zipgraph) {
             for (int j = newInd[i]; j < newInd[i + 1]; j++) {
                 csrList.insert(csrList.begin() + csrInd[i + 1]++, newList[j]);
             }
+            verDeg[i] = verDeg[i] + newInd[i + 1] - newInd[i];
         }
-        verDeg[i] = verDeg[i] + newInd[i + 1] - newInd[i];
     }
     assert(csrList.size() == N + n);
     assert(csrInd[m] == csrList.size());

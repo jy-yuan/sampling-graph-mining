@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 def genLines(u, vs):
     printlis = []
-    sorted(vs)
+    vs = sorted(list(vs))
     for v in vs:
         edge = str(u) + ' ' + str(v) + '\n'
         printlis.append(edge)
@@ -21,6 +21,7 @@ if __name__ == "__main__":
     directed = True
     path = "../datasets/youtube/dataset/com-youtube.ungraph.txt"
     # path = "../datasets/wiki-vote/dataset/wiki-Vote.txt"
+    # path = "graph"
     graph = {}
     with open(path, "r") as f:
         lines = tqdm(f.readlines())
