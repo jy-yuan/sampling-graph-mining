@@ -43,8 +43,8 @@ where M is # of vertexes and N is # of edges
 */
 int Graph::init_from_file(const std::string dir) {
     FILE *pFile = fopen(dir.c_str(), "r");
-    M = fgetc(pFile);
-    N = fgetc(pFile);
+    M = getint(pFile);
+    N = getint(pFile);
     // fscanf(pFile, "%d %d", &M, &N);
     verExi.resize(M);
     verDeg.resize(M);
@@ -53,8 +53,8 @@ int Graph::init_from_file(const std::string dir) {
     int u, v;
     for (int i = 0; i < N; i++) {
         // fscanf(pFile, "%d %d", &u, &v);
-        u = fgetc(pFile);
-        v = fgetc(pFile);
+        u = getint(pFile);
+        v = getint(pFile);
         printf("%d\n", i);
         verExi[u] = 1;
         verDeg[u]++;
