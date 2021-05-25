@@ -12,7 +12,7 @@
 #define ALPHA 0.05
 #define DELTA 0.05
 #define GRAPH_DIR "graph"
-#define NUM_VERTEX 1157805
+#define NUM_VERTEX 6009555
 #define NUM_SAMPLING 1000
 
 #define TASK_TAG 0
@@ -186,6 +186,7 @@ int main(int argc, char **argv) {
                 if (graph.join(buf) != 0) {
                     printf("Join graph failed.\n");
                 }
+                free(buf);
             }
             int result = graph.count();
             resultbuf[0] = my_rank;

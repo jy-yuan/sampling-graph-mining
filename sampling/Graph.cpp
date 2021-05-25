@@ -98,10 +98,11 @@ int Graph::join(int *zipgraph) {
     int *newExi = zipgraph + 2;
     int *newInd = zipgraph + 2 + m;
     int *newList = zipgraph + 2 + m + m + 1;
+    printf("check1\n");
     for (int i = 0; i < m; i++) {
         verExi[i] = (int)(newExi[i] || verExi[i]);
     }
-    printf("\n");
+    printf("check2\n");
     for (int i = 0; i < m; i++) {
         // printf("csrInd %d = %d\n", i, csrInd[i]);
         csrInd[i + 1] = csrInd[i] + verDeg[i];
@@ -112,6 +113,7 @@ int Graph::join(int *zipgraph) {
             verDeg[i] = verDeg[i] + newInd[i + 1] - newInd[i];
         }
     }
+    printf("check3\n");
     assert(csrList.size() == N + n);
     assert(csrInd[m] == csrList.size());
     N += n;

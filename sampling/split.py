@@ -53,7 +53,7 @@ if __name__ == "__main__":
     for i in range(n):
         edges_count = 0
         with open(str(i) + ".graph", "w") as f:
-            for j in range(i*size, (i+1)*size):
+            for j in tqdm(range(i*size, (i+1)*size)):
                 u = keys[j]
                 f.writelines(genLines(u, graph[u]))
                 edges_count += len(graph[u])
