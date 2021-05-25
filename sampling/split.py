@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 def genLines(u, vs):
     printlis = []
+    sorted(vs)
     for v in vs:
         edge = str(u) + ' ' + str(v) + '\n'
         printlis.append(edge)

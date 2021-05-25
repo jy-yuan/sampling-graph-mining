@@ -1,22 +1,22 @@
 #include "Graph.hpp"
 
-inline int getint(FILE *stream){
+inline int getint(FILE *stream) {
     char c = fgetc(stream);
     int symbol = 1;
-    while((c < '0' || c > '9') && c != '-'){
+    while ((c < '0' || c > '9') && c != '-') {
         c = fgetc(stream);
     }
-    if(c == '-'){
+    if (c == '-') {
         symbol = -1;
         c = fgetc(stream);
     }
     int x = c - '0';
     c = fgetc(stream);
-    while('0' <= c && c <= '9'){
-        x = x*10 + c - '0';
+    while ('0' <= c && c <= '9') {
+        x = x * 10 + c - '0';
         c = fgetc(stream);
     }
-    return x*symbol;
+    return x * symbol;
 }
 
 /*
@@ -51,17 +51,20 @@ int Graph::init_from_file(const std::string dir) {
     csrInd.resize(M + 1);
     csrList.reserve(N);
     int u, v;
+    int tmp = 0;
     for (int i = 0; i < N; i++) {
         // fscanf(pFile, "%d %d", &u, &v);
         u = getint(pFile);
         v = getint(pFile);
-        printf("%d\n", i);
+        if (u > tmp) {
+            for (int j = tmp + 1; j <= u; j++) {
+                csrInd[j + 1] = csrInd[j];
+            }
+            tmp = u;
+        }
         verExi[u] = 1;
         verDeg[u]++;
-        csrList.insert(csrList.begin() + csrInd[u], v);
-        for (int j = u + 1; j <= M; j++) {
-            csrInd[j]++;
-        }
+        csrList.insert(csrList.begin() + csrInd[u + 1]++, v);
     }
     for (int i = 0; i < M; i++) {
         if (verExi[i]) {
@@ -99,8 +102,10 @@ int Graph::join(int *zipgraph) {
     for (int i = 0; i < m; i++) {
         // printf("csrInd %d = %d\n", i, csrInd[i]);
         csrInd[i + 1] = csrInd[i] + verDeg[i];
-        for (int j = newInd[i]; j < newInd[i + 1]; j++) {
-            csrList.insert(csrList.begin() + csrInd[i + 1]++, newList[j]);
+        if (newExi[i]) {  // useless, for speed up
+            for (int j = newInd[i]; j < newInd[i + 1]; j++) {
+                csrList.insert(csrList.begin() + csrInd[i + 1]++, newList[j]);
+            }
         }
         verDeg[i] = verDeg[i] + newInd[i + 1] - newInd[i];
     }
@@ -157,7 +162,4 @@ int Graph::count() {
 }
 
 // naive implementation of triangle counting
-int Graph::count_triangle() {
-    
-    return 0;
-}
+int Graph::count_triangle() { return 0; }
