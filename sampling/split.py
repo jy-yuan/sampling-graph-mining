@@ -25,20 +25,25 @@ if __name__ == "__main__":
     # path = "graph"
     graph = {}
     with open(path, "r") as f:
-        lines = tqdm(f.readlines())
-        for line in lines:
-            uv = line.split()
-            if not uv[0].isnumeric() or len(uv) != 2:
-                continue
-            u = int(uv[0])
-            v = int(uv[1])
-            if u not in graph.keys():
-                graph[u] = set()
-            graph[u].add(v)
-            if not directed:
-                if v not in graph.keys():
-                    graph[v] = set()
-                graph[v].add(u)
+        while 1:
+            lines = f.readlines(1000000)
+            if not lines:
+                break
+            else:
+                lines = tqdm(lines)
+                for line in lines:
+                    uv = line.split()
+                    if not uv[0].isnumeric() or len(uv) != 2:
+                        continue
+                    u = int(uv[0])
+                    v = int(uv[1])
+                    if u not in graph.keys():
+                        graph[u] = set()
+                    graph[u].add(v)
+                    if not directed:
+                        if v not in graph.keys():
+                            graph[v] = set()
+                        graph[v].add(u)
 
     keys = sorted(list(graph.keys()))
     maxnode = keys[-1]
