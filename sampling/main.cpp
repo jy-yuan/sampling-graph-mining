@@ -49,6 +49,7 @@ void *sampling(void *Param) {
     // MPI_Request request;
     MPI_Send(subgraph, size, MPI_INT, sa->source, SAMPLING_TAG,
              MPI_COMM_WORLD);  // or mpi isend?
+    free(subgraph);
     // return (void *)&m;
 }
 
