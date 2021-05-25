@@ -18,8 +18,8 @@ def genLines(u, vs):
 if __name__ == "__main__":
     n = 2
     directed = True
-    # path = "../datasets/twitter/dataset/wiki-Vote.txt"
-    path = "../datasets/wiki-vote/dataset/wiki-Vote.txt"
+    path = "../datasets/youtube/dataset/com-youtube.ungraph.txt"
+    # path = "../datasets/wiki-vote/dataset/wiki-Vote.txt"
     graph = {}
     with open(path, "r") as f:
         lines = tqdm(f.readlines())
