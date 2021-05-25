@@ -12,7 +12,7 @@
 #define ALPHA 0.05
 #define DELTA 0.05
 #define GRAPH_DIR "graph"
-#define NUM_VERTEX 1147805
+#define NUM_VERTEX 1157805
 #define NUM_SAMPLING 1000
 
 #define TASK_TAG 0
