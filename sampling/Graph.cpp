@@ -63,7 +63,9 @@ int Graph::init_from_file(const std::string dir) {
             }
             tmp = u;
         }
-        printf("%d\n",u);
+        if(u%1000 == 0) {
+            printf("%d\n",u);
+        }
         verExi[u] = 1;
         verDeg[u]++;
         csrList.insert(csrList.begin() + csrInd[u + 1]++, v);
