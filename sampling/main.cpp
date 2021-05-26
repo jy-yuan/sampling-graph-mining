@@ -46,9 +46,9 @@ void *sampling(void *Param) {
     // }
     printf("\n");
 #endif
-    // MPI_Request request;
-    MPI_Send(subgraph, size, MPI_INT, sa->source, SAMPLING_TAG,
-             MPI_COMM_WORLD);  // or mpi isend?
+    MPI_Request request;
+    MPI_Isend(subgraph, size, MPI_INT, sa->source, SAMPLING_TAG, MPI_COMM_WORLD,
+              &request);  // or mpi isend?
     // return (void *)&m;
 }
 
@@ -93,6 +93,11 @@ int main(int argc, char **argv) {
                      MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             dst = result[0];
             estimation = result[1];
+#ifdef DEBUG
+            printf(
+                "Main process received result: %d from process %d, task %d.\n",
+                estimation, dst, workmap[dst]);
+#endif
             if (ended) {
                 workmap[dst] = 0;
             } else {
@@ -204,6 +209,8 @@ int main(int argc, char **argv) {
         receive sample size and do sampling, then send back
         in different thread
         */
+        double time;
+        time = MPI_Wtime();
         Graph graph = Graph();
         pthread_t threads[COMP_INSTANCES];
         Samplepara sa[COMP_INSTANCES];
@@ -214,6 +221,8 @@ int main(int argc, char **argv) {
         graph.init_from_file(str.c_str());
         printf("storage process %d read graph %s done.\n", my_rank,
                str.c_str());
+        time = MPI_Wtime() - time;
+        printf("Load dataset time = %f ms\n", time * 1000);
         int samplingbuf[2] = {0};
         while (1) {
             MPI_Recv(samplingbuf, 2, MPI_INT, MPI_ANY_SOURCE, SAMPLING_TAG,
