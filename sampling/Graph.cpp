@@ -49,7 +49,8 @@ int Graph::init_from_file(const std::string dir) {
     verExi.resize(M);
     verDeg.resize(M);
     csrInd.resize(M + 1);
-    csrList.reserve(N);
+    // csrList.reserve(N);
+    csrList.resize(N);
     int u, v;
     int tmp = 0;
     printf("check1\n");
@@ -63,12 +64,13 @@ int Graph::init_from_file(const std::string dir) {
             }
             tmp = u;
         }
-        if(u%1000 == 0) {
-            printf("%d\n",u);
+        if (u % 1000 == 0) {
+            printf("%d\n", u);
         }
         verExi[u] = 1;
         verDeg[u]++;
-        csrList.insert(csrList.begin() + csrInd[u + 1]++, v);
+        // csrList.insert(csrList.begin() + csrInd[u + 1]++, v);
+        csrList[csrInd[u + 1]++] = v;
     }
     printf("check2\n");
     for (int i = tmp + 1; i <= M; i++) {
