@@ -45,6 +45,7 @@ int Graph::init_from_file(const std::string dir) {
     FILE *pFile = fopen(dir.c_str(), "r");
     M = getint(pFile);
     N = getint(pFile);
+    printf("M:%d,N:%d\n",M,N);
     // fscanf(pFile, "%d %d", &M, &N);
     verExi.resize(M);
     verDeg.resize(M);
@@ -64,7 +65,7 @@ int Graph::init_from_file(const std::string dir) {
             }
             tmp = u;
         }
-        if (u % 1000 == 0) {
+        if (u % 10000 == 0) {
             printf("%d\n", u);
         }
         verExi[u] = 1;
