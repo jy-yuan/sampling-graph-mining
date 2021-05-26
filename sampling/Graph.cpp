@@ -45,7 +45,7 @@ int Graph::init_from_file(const std::string dir) {
     FILE *pFile = fopen(dir.c_str(), "r");
     M = getint(pFile);
     N = getint(pFile);
-    printf("M:%d,N:%d\n",M,N);
+    printf("M:%d,N:%d\n", M, N);
     // fscanf(pFile, "%d %d", &M, &N);
     verExi.resize(M);
     verDeg.resize(M);
@@ -54,7 +54,6 @@ int Graph::init_from_file(const std::string dir) {
     csrList.resize(N);
     int u, v;
     int tmp = 0;
-    printf("check1\n");
     for (int i = 0; i < N; i++) {
         // fscanf(pFile, "%d %d", &u, &v);
         u = getint(pFile);
@@ -65,25 +64,19 @@ int Graph::init_from_file(const std::string dir) {
             }
             tmp = u;
         }
-        if (u % 10000 == 0) {
-            printf("%d\n", u);
-        }
         verExi[u] = 1;
         verDeg[u]++;
         // csrList.insert(csrList.begin() + csrInd[u + 1]++, v);
         csrList[csrInd[u + 1]++] = v;
     }
-    printf("check2\n");
     for (int i = tmp + 1; i <= M; i++) {
         csrInd[i + 1] = csrInd[i];
     }
-    printf("check3\n");
     for (int i = 0; i < M; i++) {
         if (verExi[i]) {
             vertexes.push_back(i);
         }
     }
-    printf("check4\n");
     assert(csrInd[M] == N);
     return 0;
 }

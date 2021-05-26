@@ -46,7 +46,7 @@ execute one loop (from t-1 to t, do not change t)
 return 0 if ready to stop
 */
 int IEStop::loop() {
-    printf("sd = %f, mean = %f.\n", sd(), mean());
+    printf("t = %d, sd = %f, mean = %f.\n", t, sd(), mean());
     if (t < MIN_SAMPLE) {
         return 1;
     }
@@ -94,5 +94,5 @@ int IEStop::add(int rank, int x) {
 
 void IEStop::print_res() {
     double est = mean();
-    printf("************Estimation: %f.************\n", est);
+    printf("***************Estimation: %f.***************\n", est);
 }
