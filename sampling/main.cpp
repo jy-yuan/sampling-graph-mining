@@ -12,8 +12,8 @@
 #define ALPHA 0.05
 #define DELTA 0.05
 #define GRAPH_DIR "graph"
-#define NUM_VERTEX 6009555
-#define NUM_SAMPLING 1000
+#define NUM_VERTEX 8298
+#define NUM_SAMPLING 2000
 
 #define TASK_TAG 0
 #define SAMPLING_TAG 1
@@ -168,7 +168,7 @@ int main(int argc, char **argv) {
                           SAMPLING_TAG, MPI_COMM_WORLD, &request);
             }
             Graph graph = Graph();  // new sampling graph
-            graph.init(NUM_VERTEX);
+            graph.init(NUM_VERTEX, NUM_SAMPLING);
             for (int i = 0; i < STOR_INSTANCES; i++) {
                 int size;
                 MPI_Probe(MPI_ANY_SOURCE, SAMPLING_TAG, MPI_COMM_WORLD,
@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
                 }
                 free(buf);
             }
-            int result = graph.count();
+            int result = graph.count_five_star();
             resultbuf[0] = my_rank;
             resultbuf[1] = result;
 #ifdef DEBUG

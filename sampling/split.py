@@ -18,12 +18,12 @@ def genLines(u, vs):
 
 if __name__ == "__main__":
     n = 2
-    directed = True
+    directed = False
     # path = "../datasets/friendster/dataset/com-friendster.ungraph.txt"
     # path = "../datasets/twitter/dataset/twitter-2010.txt"
-    path = "../datasets/patent/dataset/cit-Patents.txt"
+    # path = "../datasets/patent/dataset/cit-Patents.txt"
     # path = "../datasets/youtube/dataset/com-youtube.ungraph.txt"
-    # path = "../datasets/wiki-vote/dataset/wiki-Vote.txt"
+    path = "../datasets/wiki-vote/dataset/wiki-Vote.txt"
     # path = "graph"
     graph = {}
     with open(path, "r") as f:
@@ -39,6 +39,8 @@ if __name__ == "__main__":
                         continue
                     u = int(uv[0])
                     v = int(uv[1])
+                    if u == v:
+                        continue
                     if u not in graph.keys():
                         graph[u] = set()
                     graph[u].add(v)
