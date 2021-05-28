@@ -18,13 +18,18 @@ class Graph {
    public:
     Graph(){};
     ~Graph(){};
-    int init(int m);
+    int init(int m, int mm);
     int init_from_file(const std::string dir = "graph");
     int join(int* zipgraph);
     int* sample(int num);
+    bool edge_exist(int u, int v);
     int count();
     int count_triangle();
-    int M, N;
+    int count_three_chain();
+    int count_three_motif();
+    int count_four_chain();
+    int count_five_star();
+    int M, MM, N; //M是顶点数，N是边数，MM是采样点数
 };
 
 #endif

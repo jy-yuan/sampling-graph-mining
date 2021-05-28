@@ -21,8 +21,7 @@ double IEStop::sd() {
     for (int i = 1; i <= t; i++) {
         ss += (mean - iearr[i]) * (mean - iearr[i]);
     }
-    ss /= t;
-    return ss;
+    return sqrt(ss/t);
 }
 
 double IEStop::zscore(double a) {
@@ -75,6 +74,7 @@ int IEStop::add(int rank, int x) {
     iearr[rank] = x;
     ieexi[rank] = true;
     if (rank > MAX_SAMPLE) {
+        printf("[debug] t:%d\n", t);
         return 0;
     }
     if (rank == t + 1) {

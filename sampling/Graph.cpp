@@ -22,8 +22,9 @@ inline int getint(FILE *stream) {
 /*
 just init and allocate space
 */
-int Graph::init(int m) {
+int Graph::init(int m, int mm) {
     M = m;
+    MM = mm;
     N = 0;
     verExi.resize(M);
     verDeg.resize(M);
@@ -154,6 +155,15 @@ int *Graph::sample(int num) {
     return sam;
 }
 
+bool Graph::edge_exist(int u, int v) {
+    for (int i = csrInd[u]; i < csrInd[u + 1]; i++) {
+        if (csrList[i] == v) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // naive implementation, count vertexes
 int Graph::count() {
     int count = 0;
@@ -162,9 +172,85 @@ int Graph::count() {
         // printf(" %d", verExi[i]);
         if (verExi[i]) count++;
     }
-    printf("\n");
-    return count;
+    // printf("\n");
+    return count / MM * M;
 }
 
 // naive implementation of triangle counting
-int Graph::count_triangle() { return 0; }
+int Graph::count_triangle() {
+    int count = 0;
+    int a, b, c;
+    for (int i = 0; i < M; i++) {
+        a = i;
+        if (verExi[i] && verDeg[i] >= 2) {
+            for (int j = csrInd[i]; j < csrInd[i + 1]; j++) {
+                b = csrList[j];
+                if (b < a || !verExi[b]) {
+                    continue;
+                }
+                for (int k = j + 1; k < csrInd[i + 1]; k++) {
+                    c = csrList[k];
+                    if (c < b || !verExi[c]) {
+                        continue;
+                    }
+                    if (edge_exist(b, c)) {
+                        count++;
+                    }
+                }
+            }
+        }
+    }
+    return count * (M / MM) * (M / MM) * (M / MM);
+}
+
+int Graph::count_three_chain() {
+    int count = 0;
+    int a, b, c;
+    for (int i = 0; i < M; i++) {
+        a = i;
+        if (verExi[i]) {
+            for (int j = csrInd[i]; j < csrInd[i + 1]; j++) {
+                b = csrList[j];
+                if (b < a || !verExi[b]) {
+                    continue;
+                }
+                for (int k = j + 1; k < csrInd[i + 1]; k++) {
+                    c = csrList[k];
+                    if (c <= a || !verExi[c] || edge_exist(c, a)) {
+                        continue;
+                    }
+                    count++;
+                }
+            }
+        }
+    }
+    return count * (M / MM) * (M / MM) * (M / MM);
+}
+
+int Graph::count_three_motif() {
+    return count_triangle() + count_three_chain();
+}
+
+int Graph::count_four_chain() {
+    int count = 0;
+    return count * (M / MM) * (M / MM) * (M / MM) * (M / MM);
+}
+
+int Graph::count_five_star() {
+    int count = 0;
+    for (int i = 0; i < M; i++) {
+        if (!verExi[i] || verDeg[i] < 5) {
+            continue;
+        }
+        int deg = 0;
+        for (int j = csrInd[i]; j < csrInd[i + 1]; j++) {
+            if (verExi[csrList[j]]) {
+                deg++;
+            }
+        }
+        if (deg >= 5) {
+            count += deg * (deg - 1) * (deg - 2) * (deg - 3) * (deg - 4) / 120;
+        }
+    }
+    return count;// * (M / MM) * (M / MM) * (M / MM) * (M / MM) * (M / MM);
+}
