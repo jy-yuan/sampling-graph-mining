@@ -12,7 +12,7 @@
 #define ALPHA 0.05
 #define DELTA 0.05
 #define GRAPH_DIR "graph"
-#define NUM_VERTEX 8298
+#define NUM_VERTEX 7115
 #define NUM_SAMPLING 3000
 
 #define TASK_TAG 0
@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
                 }
                 free(buf);
             }
-            double result = graph.count_triangle();
+            double result = graph.count();
             resultbuf[0] = my_rank;
             resultbuf[1] = result;
 #ifdef DEBUG
