@@ -8,11 +8,11 @@
 
 from tqdm import tqdm
 
-def genLines(u, vs):
+def genLines(u, vs, mapping):
     printlis = []
     vs = sorted(list(vs))
     for v in vs:
-        edge = str(u) + ' ' + str(v) + '\n'
+        edge = str(mapping[u]) + ' ' + str(mapping[v]) + '\n'
         printlis.append(edge)
     return printlis
 
@@ -51,21 +51,24 @@ if __name__ == "__main__":
 
     keys = sorted(list(graph.keys()))
     maxnode = keys[-1]
+    mapping = [0] * (maxnode+1)
+    for i in range(len(keys)):
+        mapping[keys[i]] = i
     size = len(keys) // n
     for i in range(n):
         edges_count = 0
         with open(str(i) + ".graph", "w") as f:
             for j in tqdm(range(i*size, (i+1)*size)):
                 u = keys[j]
-                f.writelines(genLines(u, graph[u]))
+                f.writelines(genLines(u, graph[u], mapping))
                 edges_count += len(graph[u])
             if i == n-1:
                 for j in range((i+1)*size, len(keys)):
                     u = keys[j]
-                    f.writelines(genLines(u, graph[u]))
+                    f.writelines(genLines(u, graph[u], mapping))
                     edges_count += len(graph[u])
             
         with open(str(i) + ".graph", "r+") as f:
             content = f.read()
             f.seek(0,0)
-            f.write(str(maxnode+1) + ' ' + str(edges_count) +'\n' + content)
+            f.write(str(len(keys)) + ' ' + str(edges_count) +'\n' + content)
