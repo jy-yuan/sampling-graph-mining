@@ -13,7 +13,7 @@
 #define DELTA 0.05
 #define GRAPH_DIR "graph"
 #define NUM_VERTEX 8298
-#define NUM_SAMPLING 2000
+#define NUM_SAMPLING 3000
 
 #define TASK_TAG 0
 #define SAMPLING_TAG 1
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
         int work_no = 1;
         int workmap[COMP_INSTANCES + 1];
         int dst = 1;
-        int estimation;
+        double estimation;
         int stopbuf[2] = {0};
         IEStop::get_instance().init(ALPHA, DELTA);
         time = MPI_Wtime();
@@ -88,10 +88,10 @@ int main(int argc, char **argv) {
             dst++;
         }
         while (1) {
-            int result[2];
-            MPI_Recv(&result, 2, MPI_INT, MPI_ANY_SOURCE, ESTIMATION_TAG,
+            double result[2];
+            MPI_Recv(&result, 2, MPI_DOUBLE, MPI_ANY_SOURCE, ESTIMATION_TAG,
                      MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            dst = result[0];
+            dst = (int)std::round(result[0]);
             estimation = result[1];
 #ifdef DEBUG
             printf(
@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
         receive sample, combine them and count the estimated result
         */
         int arr[STOR_INSTANCES][2] = {0};  // random sizes
-        int resultbuf[2] = {0};
+        double resultbuf[2] = {0};
         while (1) {
             int work_no;
             MPI_Recv(&work_no, 1, MPI_INT, 0, TASK_TAG, MPI_COMM_WORLD,
@@ -193,14 +193,14 @@ int main(int argc, char **argv) {
                 }
                 free(buf);
             }
-            int result = graph.count_five_star();
+            double result = graph.count_triangle();
             resultbuf[0] = my_rank;
             resultbuf[1] = result;
 #ifdef DEBUG
-            printf("Compute process %d: estimation result %d.\n", my_rank,
+            printf("Compute process %d: estimation result %f.\n", my_rank,
                    result);
 #endif
-            MPI_Send(resultbuf, 2, MPI_INT, 0, ESTIMATION_TAG, MPI_COMM_WORLD);
+            MPI_Send(resultbuf, 2, MPI_DOUBLE, 0, ESTIMATION_TAG, MPI_COMM_WORLD);
         }
     } else {
         /*

@@ -57,7 +57,7 @@ int IEStop::loop() {
 
 void IEStop::init(double alphaa, double deltad) {
     memset(ieexi, 0, MAX_SAMPLE * sizeof(bool));
-    memset(iearr, 0, MAX_SAMPLE * sizeof(int));
+    memset(iearr, 0, MAX_SAMPLE * sizeof(double));
     t = 0;
     k = 0;
     lb = 0;
@@ -70,7 +70,7 @@ void IEStop::init(double alphaa, double deltad) {
 add X_rank to IEStop process
 return 0 if stop
 */
-int IEStop::add(int rank, int x) {
+int IEStop::add(int rank, double x) {
     iearr[rank] = x;
     ieexi[rank] = true;
     if (rank > MAX_SAMPLE) {

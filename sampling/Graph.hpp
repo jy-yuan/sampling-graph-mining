@@ -3,6 +3,7 @@
 
 #pragma once
 #include <cstdio>
+#include <cmath>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -23,12 +24,12 @@ class Graph {
     int join(int* zipgraph);
     int* sample(int num);
     bool edge_exist(int u, int v);
-    int count();
-    int count_triangle();
-    int count_three_chain();
-    int count_three_motif();
-    int count_four_chain();
-    int count_five_star();
+    double count();
+    double count_triangle();
+    double count_three_chain();
+    double count_three_motif();
+    double count_four_chain();
+    double count_five_star();
     int M, MM, N; //M是顶点数，N是边数，MM是采样点数
 };
 

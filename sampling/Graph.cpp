@@ -164,21 +164,25 @@ bool Graph::edge_exist(int u, int v) {
     return false;
 }
 
-// naive implementation, count vertexes
-int Graph::count() {
-    int count = 0;
+// naive implementation, count edges
+double Graph::count() {
+    double count = 0;
     // printf("verExi:");
     for (int i = 0; i < M; i++) {
-        // printf(" %d", verExi[i]);
-        if (verExi[i]) count++;
+        if (verExi[i]) {
+            for (int j = csrInd[i]; j < csrInd[i + 1]; j++) {
+                if (verExi[csrList[j]]) count++;
+            }
+        }
     }
     // printf("\n");
-    return count / MM * M;
+    double samplerate = (double)MM / M;
+    return count / (samplerate * samplerate);
 }
 
 // naive implementation of triangle counting
-int Graph::count_triangle() {
-    int count = 0;
+double Graph::count_triangle() {
+    double count = 0;
     int a, b, c;
     for (int i = 0; i < M; i++) {
         a = i;
@@ -200,11 +204,12 @@ int Graph::count_triangle() {
             }
         }
     }
-    return count * (M / MM) * (M / MM) * (M / MM);
+    double samplerate = (double)MM / M;
+    return count / (samplerate * samplerate * samplerate);
 }
 
-int Graph::count_three_chain() {
-    int count = 0;
+double Graph::count_three_chain() {
+    double count = 0;
     int a, b, c;
     for (int i = 0; i < M; i++) {
         a = i;
@@ -224,20 +229,47 @@ int Graph::count_three_chain() {
             }
         }
     }
-    return count * (M / MM) * (M / MM) * (M / MM);
+    double samplerate = (double)MM / M;
+    return count / (samplerate * samplerate * samplerate);
 }
 
-int Graph::count_three_motif() {
+double Graph::count_three_motif() {
     return count_triangle() + count_three_chain();
 }
 
-int Graph::count_four_chain() {
-    int count = 0;
-    return count * (M / MM) * (M / MM) * (M / MM) * (M / MM);
+double Graph::count_four_chain() {
+    double count = 0;
+    int a, b, c, d;
+    for (int i = 0; i < M; i++) {
+        a = i;
+        if (!verExi[a]) {
+            continue;
+        }
+        for (int j = csrInd[i]; j < csrInd[i + 1]; j++) {
+            b = csrList[j];
+            if (!verExi[b]) {
+                continue;
+            }
+            for (int k = csrInd[j]; k < csrInd[j + 1]; k++) {
+                c = csrList[k];
+                if (!verExi[c]) {
+                    continue;
+                }
+                for (int l = csrInd[k]; l < csrInd[k + 1]; l++) {
+                    d = csrList[l];
+                    if (verExi[d] && d > a) {
+                        count++;
+                    }
+                }
+            }
+        }
+    }
+    double samplerate = (double)MM / M;
+    return count / (samplerate * samplerate * samplerate * samplerate);
 }
 
-int Graph::count_five_star() {
-    int count = 0;
+double Graph::count_five_star() {
+    double count = 0;
     for (int i = 0; i < M; i++) {
         if (!verExi[i] || verDeg[i] < 5) {
             continue;
@@ -252,5 +284,7 @@ int Graph::count_five_star() {
             count += deg * (deg - 1) * (deg - 2) * (deg - 3) * (deg - 4) / 120;
         }
     }
-    return count;// * (M / MM) * (M / MM) * (M / MM) * (M / MM) * (M / MM);
+    double samplerate = (double)MM / M;
+    return count /
+           (samplerate * samplerate * samplerate * samplerate * samplerate);
 }
