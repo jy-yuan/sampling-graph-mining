@@ -18,12 +18,12 @@ class IEStop {
    public:
     static IEStop& get_instance();
     void init(double alphaa = 0.05, double deltad = 0.05);
-    int add(int rank, int x);
+    int add(int rank, double x);
     void print_res();
 
    private:
     bool ieexi[MAX_SAMPLE];
-    int iearr[MAX_SAMPLE];
+    double iearr[MAX_SAMPLE];
     int t = 0;
     int k = 0;
     double lb = 0;

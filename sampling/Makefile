@@ -4,13 +4,13 @@ main: main.o Graph.o IEStop.o
 	mpicxx -pthread main.o Graph.o IEStop.o -o main
 
 main.o:
-	mpicxx -pthread -c main.cpp
+	mpicxx -pthread -c -O2 main.cpp
 
 Graph.o: Graph.cpp Graph.hpp
-	g++ -c Graph.cpp
+	g++ -std=c++11 -c -O2 Graph.cpp
 
 IEStop.o: IEStop.cpp IEStop.hpp
-	g++ -c IEStop.cpp
+	g++ -std=c++11 -c -O2 IEStop.cpp
 
 clean:
 	rm -f *.o main
