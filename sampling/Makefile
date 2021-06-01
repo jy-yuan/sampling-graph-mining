@@ -4,7 +4,7 @@ main: main.o Graph.o IEStop.o
 	mpicxx -pthread main.o Graph.o IEStop.o -o main
 
 main.o:
-	mpicxx -pthread -c -O2 main.cpp
+	mpicxx -pthread -c main.cpp
 
 Graph.o: Graph.cpp Graph.hpp
 	g++ -std=c++11 -c -O2 Graph.cpp
