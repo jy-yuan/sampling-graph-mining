@@ -58,7 +58,9 @@ argv:
 */
 int main(int argc, char **argv) {
     if (argc != 6) {
-        printf("args: COMP_INSTANCES, STOR_INSTANCES, NUM_VERTEX, NUM_SAMPLING, SAMPLE_TASK\n");
+        printf(
+            "args: COMP_INSTANCES, STOR_INSTANCES, NUM_VERTEX, NUM_SAMPLING, "
+            "SAMPLE_TASK\n");
         return 0;
     }
     const int COMP_INSTANCES = atoi(argv[1]);
@@ -147,7 +149,8 @@ int main(int argc, char **argv) {
         send sample size to each storage process
         receive sample, combine them and count the estimated result
         */
-        int * arr = (int*) calloc(STOR_INSTANCES*2, sizeof(int)); // random sizes
+        int *arr =
+            (int *)calloc(STOR_INSTANCES * 2, sizeof(int));  // random sizes
         double resultbuf[2] = {0};
         while (1) {
             int work_no;
@@ -163,18 +166,18 @@ int main(int argc, char **argv) {
             memset(arr, 0, 2 * STOR_INSTANCES * sizeof(int));
             srand(rand());
             for (int i = 0; i < NUM_SAMPLING; i++) {
-                arr[(rand() % STOR_INSTANCES)*2]++;
+                arr[(rand() % STOR_INSTANCES) * 2]++;
             }
 #ifdef DEBUG
             printf("Compute process %d send sampling sizes:", my_rank);
             for (int i = 0; i < STOR_INSTANCES; i++) {
-                printf(" %d", arr[i*2]);
+                printf(" %d", arr[i * 2]);
             }
             printf("\n");
 #endif
             for (int i = 0; i < STOR_INSTANCES; i++) {
-                arr[i*2+1] = my_rank;
-                MPI_Isend(&arr[i*2], 2, MPI_INT, COMP_INSTANCES + i + 1,
+                arr[i * 2 + 1] = my_rank;
+                MPI_Isend(&arr[i * 2], 2, MPI_INT, COMP_INSTANCES + i + 1,
                           SAMPLING_TAG, MPI_COMM_WORLD, &request);
             }
             Graph graph = Graph();  // new sampling graph
@@ -204,7 +207,7 @@ int main(int argc, char **argv) {
                 free(buf);
             }
             double result = 0;
-            if(task == "triangle") {
+            if (task == "triangle") {
                 result = graph.count_triangle();
             } else if (task == "threechain") {
                 result = graph.count_three_chain();
@@ -223,7 +226,8 @@ int main(int argc, char **argv) {
             printf("Compute process %d: estimation result %f.\n", my_rank,
                    result);
 #endif
-            MPI_Send(resultbuf, 2, MPI_DOUBLE, 0, ESTIMATION_TAG, MPI_COMM_WORLD);
+            MPI_Send(resultbuf, 2, MPI_DOUBLE, 0, ESTIMATION_TAG,
+                     MPI_COMM_WORLD);
         }
     } else {
         /*
@@ -237,8 +241,9 @@ int main(int argc, char **argv) {
         Graph graph = Graph();
         pthread_t threads[COMP_INSTANCES];
         Samplepara sa[COMP_INSTANCES];
-        bool* threadinit = (bool*)calloc(COMP_INSTANCES, sizeof(bool));
-        std::string str = GRAPH_DIR + std::to_string(my_rank - COMP_INSTANCES - 1);
+        bool *threadinit = (bool *)calloc(COMP_INSTANCES, sizeof(bool));
+        std::string str =
+            GRAPH_DIR + std::to_string(my_rank - COMP_INSTANCES - 1);
         printf("storage process %d read graph %s\n", my_rank, str.c_str());
         graph.init_from_file(str.c_str());
         printf("storage process %d read graph %s done.\n", my_rank,
