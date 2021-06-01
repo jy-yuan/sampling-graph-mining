@@ -9,13 +9,15 @@
 from tqdm import tqdm
 import argparse
 
-def genLines(u, vs, mapping):
+
+def genLines(u, vs):
     printlis = []
     vs = sorted(list(vs))
     for v in vs:
-        edge = str(mapping[u]) + ' ' + str(mapping[v]) + '\n'
+        edge = str(u) + ' ' + str(v) + '\n'
         printlis.append(edge)
     return printlis
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -43,9 +45,14 @@ if __name__ == "__main__":
     elif target == 'yt':
         path = "../datasets/youtube/dataset/com-youtube.ungraph.txt"
         givennodes = 1134890
-    graph = {}
+
+    nodes = set()
+    files = []
+    splitsize = givennodes * 1.1 / n
+    for i in range(n):
+        files.append(open(str(i), "w"))
     with open(path, "r") as f:
-        print("reading raw graph")
+        print("slicing")
         while 1:
             lines = f.readlines(1 << 30)
             if not lines:
@@ -60,35 +67,42 @@ if __name__ == "__main__":
                     v = int(uv[1])
                     if u == v:
                         continue
-                    if u not in graph.keys():
-                        graph[u] = set()
-                    graph[u].add(v)
+                    nodes.add(u)
+                    nodes.add(v)
+                    whichfile = int(u // splitsize) % n
+                    files[whichfile].write(str(u) + " " + str(v) + "\n")
                     if not directed:
-                        if v not in graph.keys():
-                            graph[v] = set()
-                        graph[v].add(u)
+                        whichfile = int(v // splitsize) % n
+                        files[whichfile].write(str(v) + " " + str(u) + "\n")
 
-    keys = sorted(list(graph.keys()))
-    maxnode = keys[-1]
+    nodes = sorted(list(nodes))
+    maxnode = nodes[-1]
+    print("maxnode: " + str(maxnode))
     mapping = [0] * (maxnode+1)
-    for i in range(len(keys)):
-        mapping[keys[i]] = i
-    size = len(keys) // n
+    for i in range(len(nodes)):
+        mapping[nodes[i]] = i
+
     for i in range(n):
-        edges_count = 0
-        print("saving graph %d"%i)
-        with open(str(i), "w") as f:
-            for j in tqdm(range(i*size, (i+1)*size)):
-                u = keys[j]
-                f.writelines(genLines(u, graph[u], mapping))
-                edges_count += len(graph[u])
-            if i == n-1:
-                for j in range((i+1)*size, len(keys)):
-                    u = keys[j]
-                    f.writelines(genLines(u, graph[u], mapping))
-                    edges_count += len(graph[u])
-            
+        files[i].close()
+
+    for i in range(n):
+        print("formatting file %d" % i)
+        edge_count = 0
+        printlines = []
         with open(str(i), "r+") as f:
-            content = f.read()
-            f.seek(0,0)
-            f.write(str(len(keys)) + ' ' + str(edges_count) +'\n' + content)
+            graph = {}
+            lines = tqdm(f.readlines())
+            for line in lines:
+                uv = line.split()
+                u = mapping[int(uv[0])]
+                v = mapping[int(uv[1])]
+                if u not in graph.keys():
+                    graph[u] = set()
+                graph[u].add(v)
+            keys = sorted(list(graph.keys()))
+            for key in keys:
+                edge_count += len(graph[key])
+                printlines += genLines(key, graph[key])
+        with open(str(i), "w") as f:
+            f.write(str(len(nodes)) + ' ' + str(edge_count) + '\n')
+            f.writelines(printlines)
