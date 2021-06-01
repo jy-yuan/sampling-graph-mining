@@ -1,19 +1,20 @@
 #include <mpi.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "EBStop.hpp"
 #include "Graph.hpp"
 #include "IEStop.hpp"
 
 // const need to be sent from argv
-#define COMP_INSTANCES 2
-#define STOR_INSTANCES 2
+// #define COMP_INSTANCES 2
+// #define STOR_INSTANCES 2
 #define ALPHA 0.05
 #define DELTA 0.05
-#define GRAPH_DIR "graph"
-#define NUM_VERTEX 7115
-#define NUM_SAMPLING 3000
+#define GRAPH_DIR "./"
+// #define NUM_VERTEX 7115
+// #define NUM_SAMPLING 3000
 
 #define TASK_TAG 0
 #define SAMPLING_TAG 1
@@ -56,6 +57,15 @@ void *sampling(void *Param) {
 argv:
 */
 int main(int argc, char **argv) {
+    if (argc != 6) {
+        printf("args: COMP_INSTANCES, STOR_INSTANCES, NUM_VERTEX, NUM_SAMPLING, SAMPLE_TASK\n");
+        return 0;
+    }
+    const int COMP_INSTANCES = atoi(argv[1]);
+    const int STOR_INSTANCES = atoi(argv[2]);
+    const int NUM_VERTEX = atoi(argv[3]);
+    const int NUM_SAMPLING = atoi(argv[4]);
+    std::string task = std::string(argv[5]);
     int my_rank;
     int provided;
     bool single_thread = false;
@@ -95,7 +105,7 @@ int main(int argc, char **argv) {
             estimation = result[1];
 #ifdef DEBUG
             printf(
-                "Main process received result: %d from process %d, task %d.\n",
+                "Main process received result: %f from process %d, task %d.\n",
                 estimation, dst, workmap[dst]);
 #endif
             if (ended) {
@@ -137,7 +147,7 @@ int main(int argc, char **argv) {
         send sample size to each storage process
         receive sample, combine them and count the estimated result
         */
-        int arr[STOR_INSTANCES][2] = {0};  // random sizes
+        int * arr = (int*) calloc(STOR_INSTANCES*2, sizeof(int)); // random sizes
         double resultbuf[2] = {0};
         while (1) {
             int work_no;
@@ -153,18 +163,18 @@ int main(int argc, char **argv) {
             memset(arr, 0, 2 * STOR_INSTANCES * sizeof(int));
             srand(rand());
             for (int i = 0; i < NUM_SAMPLING; i++) {
-                arr[rand() % STOR_INSTANCES][0]++;
+                arr[(rand() % STOR_INSTANCES)*2]++;
             }
 #ifdef DEBUG
             printf("Compute process %d send sampling sizes:", my_rank);
             for (int i = 0; i < STOR_INSTANCES; i++) {
-                printf(" %d", arr[i][0]);
+                printf(" %d", arr[i*2]);
             }
             printf("\n");
 #endif
             for (int i = 0; i < STOR_INSTANCES; i++) {
-                arr[i][1] = my_rank;
-                MPI_Isend(arr[i], 2, MPI_INT, COMP_INSTANCES + i + 1,
+                arr[i*2+1] = my_rank;
+                MPI_Isend(&arr[i*2], 2, MPI_INT, COMP_INSTANCES + i + 1,
                           SAMPLING_TAG, MPI_COMM_WORLD, &request);
             }
             Graph graph = Graph();  // new sampling graph
@@ -193,7 +203,20 @@ int main(int argc, char **argv) {
                 }
                 free(buf);
             }
-            double result = graph.count();
+            double result = 0;
+            if(task == "triangle") {
+                result = graph.count_triangle();
+            } else if (task == "threechain") {
+                result = graph.count_three_chain();
+            } else if (task == "threemotif") {
+                result = graph.count_three_motif();
+            } else if (task == "fourchain") {
+                result = graph.count_four_chain();
+            } else if (task == "fivestar") {
+                result = graph.count_five_star();
+            } else {
+                result = graph.count();
+            }
             resultbuf[0] = my_rank;
             resultbuf[1] = result;
 #ifdef DEBUG
@@ -214,9 +237,8 @@ int main(int argc, char **argv) {
         Graph graph = Graph();
         pthread_t threads[COMP_INSTANCES];
         Samplepara sa[COMP_INSTANCES];
-        bool threadinit[COMP_INSTANCES] = {false};
-        std::string str =
-            std::to_string(my_rank - COMP_INSTANCES - 1) + ".graph";
+        bool* threadinit = (bool*)calloc(COMP_INSTANCES, sizeof(bool));
+        std::string str = GRAPH_DIR + std::to_string(my_rank - COMP_INSTANCES - 1);
         printf("storage process %d read graph %s\n", my_rank, str.c_str());
         graph.init_from_file(str.c_str());
         printf("storage process %d read graph %s done.\n", my_rank,

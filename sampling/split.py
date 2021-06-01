@@ -7,6 +7,7 @@
 # if not directed, double the edge
 
 from tqdm import tqdm
+import argparse
 
 def genLines(u, vs, mapping):
     printlis = []
@@ -17,16 +18,28 @@ def genLines(u, vs, mapping):
     return printlis
 
 if __name__ == "__main__":
-    n = 2
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-n", "--num", help="num of slices", required=True)
+    parser.add_argument("-t", "--target", help="target graph", required=True)
+    args = parser.parse_args()
+    n = int(args.num)
+    target = args.target
     directed = False
-    # path = "../datasets/friendster/dataset/com-friendster.ungraph.txt"
-    # path = "../datasets/twitter/dataset/twitter-2010.txt"
-    # path = "../datasets/patent/dataset/cit-Patents.txt"
-    # path = "../datasets/youtube/dataset/com-youtube.ungraph.txt"
+    # default wiki-vote
     path = "../datasets/wiki-vote/dataset/wiki-Vote.txt"
-    # path = "graph"
+    if target == 'fr':
+        path = "../datasets/friendster/dataset/com-friendster.ungraph.txt"
+    elif target == 'tw':
+        path = "../datasets/twitter/dataset/twitter-2010.txt"
+    elif target == 'lj':
+        path = "../datasets/soc-livejournal/dataset/soc-LiveJournal1.txt"
+    elif target == 'pt':
+        path = "../datasets/patent/dataset/cit-Patents.txt"
+    elif target == 'yt':
+        path = "../datasets/youtube/dataset/com-youtube.ungraph.txt"
     graph = {}
     with open(path, "r") as f:
+        print("reading raw graph")
         while 1:
             lines = f.readlines(1 << 30)
             if not lines:
@@ -57,7 +70,8 @@ if __name__ == "__main__":
     size = len(keys) // n
     for i in range(n):
         edges_count = 0
-        with open(str(i) + ".graph", "w") as f:
+        print("saving graph %d"%i)
+        with open(str(i), "w") as f:
             for j in tqdm(range(i*size, (i+1)*size)):
                 u = keys[j]
                 f.writelines(genLines(u, graph[u], mapping))
@@ -68,7 +82,7 @@ if __name__ == "__main__":
                     f.writelines(genLines(u, graph[u], mapping))
                     edges_count += len(graph[u])
             
-        with open(str(i) + ".graph", "r+") as f:
+        with open(str(i), "r+") as f:
             content = f.read()
             f.seek(0,0)
             f.write(str(len(keys)) + ' ' + str(edges_count) +'\n' + content)
