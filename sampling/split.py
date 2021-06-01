@@ -50,7 +50,7 @@ if __name__ == "__main__":
     files = []
     splitsize = givennodes * 1.1 / n
     for i in range(n):
-        files.append(open(str(i), "w"))
+        files.append(open(target + '/' + str(i), "w"))
     with open(path, "r") as f:
         print("slicing")
         while 1:
@@ -89,7 +89,7 @@ if __name__ == "__main__":
         print("formatting file %d" % i)
         edge_count = 0
         printlines = []
-        with open(str(i), "r+") as f:
+        with open(target + '/' + str(i), "r+") as f:
             graph = {}
             lines = tqdm(f.readlines())
             for line in lines:
@@ -103,6 +103,6 @@ if __name__ == "__main__":
             for key in keys:
                 edge_count += len(graph[key])
                 printlines += genLines(key, graph[key])
-        with open(str(i), "w") as f:
+        with open(target + '/' + str(i), "w") as f:
             f.write(str(len(nodes)) + ' ' + str(edge_count) + '\n')
             f.writelines(printlines)
