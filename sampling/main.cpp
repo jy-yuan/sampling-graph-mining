@@ -12,7 +12,7 @@
 // #define STOR_INSTANCES 2
 #define ALPHA 0.05
 #define DELTA 0.05
-#define GRAPH_DIR "./"
+// #define GRAPH_DIR "./"
 // #define NUM_VERTEX 7115
 // #define NUM_SAMPLING 3000
 
@@ -57,7 +57,7 @@ void *sampling(void *Param) {
 argv:
 */
 int main(int argc, char **argv) {
-    if (argc != 6) {
+    if (argc != 7) {
         printf(
             "args: COMP_INSTANCES, STOR_INSTANCES, NUM_VERTEX, NUM_SAMPLING, "
             "SAMPLE_TASK\n");
@@ -65,9 +65,10 @@ int main(int argc, char **argv) {
     }
     const int COMP_INSTANCES = atoi(argv[1]);
     const int STOR_INSTANCES = atoi(argv[2]);
-    const int NUM_VERTEX = atoi(argv[3]);
-    const int NUM_SAMPLING = atoi(argv[4]);
-    std::string task = std::string(argv[5]);
+    std::string GRAPH_DIR = argv[3];
+    const int NUM_VERTEX = atoi(argv[4]);
+    const int NUM_SAMPLING = atoi(argv[5]);
+    std::string task = std::string(argv[6]);
     int my_rank;
     int provided;
     bool single_thread = false;
@@ -243,7 +244,7 @@ int main(int argc, char **argv) {
         Samplepara sa[COMP_INSTANCES];
         bool *threadinit = (bool *)calloc(COMP_INSTANCES, sizeof(bool));
         std::string str =
-            GRAPH_DIR + std::to_string(my_rank - COMP_INSTANCES - 1);
+            GRAPH_DIR + '/' +std::to_string(my_rank - COMP_INSTANCES - 1);
         printf("storage process %d read graph %s\n", my_rank, str.c_str());
         graph.init_from_file(str.c_str());
         printf("storage process %d read graph %s done.\n", my_rank,
