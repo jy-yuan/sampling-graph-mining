@@ -27,16 +27,22 @@ if __name__ == "__main__":
     directed = False
     # default wiki-vote
     path = "../datasets/wiki-vote/dataset/wiki-Vote.txt"
+    givennodes = 7115
     if target == 'fr':
         path = "../datasets/friendster/dataset/com-friendster.ungraph.txt"
+        givennodes = 65608366
     elif target == 'tw':
         path = "../datasets/twitter/dataset/twitter-2010.txt"
+        givennodes = 41652230
     elif target == 'lj':
         path = "../datasets/soc-livejournal/dataset/soc-LiveJournal1.txt"
+        givennodes = 4847571
     elif target == 'pt':
         path = "../datasets/patent/dataset/cit-Patents.txt"
+        givennodes = 3774768
     elif target == 'yt':
         path = "../datasets/youtube/dataset/com-youtube.ungraph.txt"
+        givennodes = 1134890
     graph = {}
     with open(path, "r") as f:
         print("reading raw graph")

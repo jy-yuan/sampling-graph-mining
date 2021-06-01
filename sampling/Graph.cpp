@@ -245,19 +245,19 @@ double Graph::count_four_chain() {
         if (!verExi[a]) {
             continue;
         }
-        for (int j = csrInd[i]; j < csrInd[i + 1]; j++) {
+        for (int j = csrInd[a]; j < csrInd[a + 1]; j++) {
             b = csrList[j];
             if (!verExi[b]) {
                 continue;
             }
-            for (int k = csrInd[j]; k < csrInd[j + 1]; k++) {
+            for (int k = csrInd[b]; k < csrInd[b + 1]; k++) {
                 c = csrList[k];
-                if (!verExi[c]) {
+                if (!verExi[c] || c == a) {
                     continue;
                 }
-                for (int l = csrInd[k]; l < csrInd[k + 1]; l++) {
+                for (int l = csrInd[c]; l < csrInd[c + 1]; l++) {
                     d = csrList[l];
-                    if (verExi[d] && d > a) {
+                    if (verExi[d] && d > a && d != b) {
                         count++;
                     }
                 }
