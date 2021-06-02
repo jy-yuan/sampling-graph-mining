@@ -75,6 +75,7 @@ if __name__ == "__main__":
                         whichfile = int(v // splitsize) % n
                         files[whichfile].write(str(v) + " " + str(u) + "\n")
 
+    print("slice done")
     nodes = sorted(list(nodes))
     maxnode = nodes[-1]
     print("maxnode: " + str(maxnode))
