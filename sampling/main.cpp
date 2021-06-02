@@ -59,8 +59,8 @@ argv:
 int main(int argc, char **argv) {
     if (argc != 7) {
         printf(
-            "args: COMP_INSTANCES, STOR_INSTANCES, NUM_VERTEX, NUM_SAMPLING, "
-            "SAMPLE_TASK\n");
+            "args: COMP_INSTANCES, STOR_INSTANCES, GRAPH_DIR, NUM_VERTEX, "
+            "NUM_SAMPLING, SAMPLE_TASK\n");
         return 0;
     }
     const int COMP_INSTANCES = atoi(argv[1]);
@@ -94,12 +94,12 @@ int main(int argc, char **argv) {
         double estimation;
         int stopbuf[2] = {0};
         IEStop::get_instance().init(ALPHA, DELTA);
-        time = MPI_Wtime();
         for (; work_no <= COMP_INSTANCES; work_no++) {
             workmap[dst] = work_no;
             MPI_Send(&work_no, 1, MPI_INT, dst, TASK_TAG, MPI_COMM_WORLD);
             dst++;
         }
+        time = MPI_Wtime();
         while (1) {
             double result[2];
             MPI_Recv(&result, 2, MPI_DOUBLE, MPI_ANY_SOURCE, ESTIMATION_TAG,
@@ -153,6 +153,7 @@ int main(int argc, char **argv) {
         int *arr =
             (int *)calloc(STOR_INSTANCES * 2, sizeof(int));  // random sizes
         double resultbuf[2] = {0};
+        double time;
         while (1) {
             int work_no;
             MPI_Recv(&work_no, 1, MPI_INT, 0, TASK_TAG, MPI_COMM_WORLD,
@@ -181,6 +182,7 @@ int main(int argc, char **argv) {
                 MPI_Isend(&arr[i * 2], 2, MPI_INT, COMP_INSTANCES + i + 1,
                           SAMPLING_TAG, MPI_COMM_WORLD, &request);
             }
+            time = MPI_Wtime();
             Graph graph = Graph();  // new sampling graph
             graph.init(NUM_VERTEX, NUM_SAMPLING);
             for (int i = 0; i < STOR_INSTANCES; i++) {
@@ -207,6 +209,10 @@ int main(int argc, char **argv) {
                 }
                 free(buf);
             }
+            time = MPI_Wtime() - time;
+            printf("Conpute process %d receive graph time = %f ms\n", my_rank,
+                   time * 1000);
+            time = MPI_Wtime();
             double result = 0;
             if (task == "triangle") {
                 result = graph.count_triangle();
@@ -221,6 +227,9 @@ int main(int argc, char **argv) {
             } else {
                 result = graph.count();
             }
+            time = MPI_Wtime() - time;
+            printf("Conpute process %d compute time = %f ms\n", my_rank,
+                   time * 1000);
             resultbuf[0] = my_rank;
             resultbuf[1] = result;
 #ifdef DEBUG
@@ -244,8 +253,8 @@ int main(int argc, char **argv) {
         Samplepara sa[COMP_INSTANCES];
         bool *threadinit = (bool *)calloc(COMP_INSTANCES, sizeof(bool));
         std::string str =
-            GRAPH_DIR + '/' +std::to_string(my_rank - COMP_INSTANCES - 1);
-        printf("storage process %d read graph %s\n", my_rank, str.c_str());
+            GRAPH_DIR + '/' + std::to_string(my_rank - COMP_INSTANCES - 1);
+        // printf("storage process %d read graph %s\n", my_rank, str.c_str());
         graph.init_from_file(str.c_str());
         printf("storage process %d read graph %s done.\n", my_rank,
                str.c_str());
