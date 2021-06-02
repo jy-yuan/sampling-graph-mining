@@ -70,7 +70,8 @@ void IEStop::init(double alphaa, double deltad) {
 add X_rank to IEStop process
 return 0 if stop
 */
-int IEStop::add(int rank, double x) {
+int IEStop::add(int rankk, double x) {
+    int rank = t + 1; //for fun
     iearr[rank] = x;
     ieexi[rank] = true;
     if (rank > MAX_SAMPLE) {
