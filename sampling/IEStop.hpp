@@ -6,7 +6,7 @@
 #include <cstring>
 
 #define MAX_SAMPLE 10000
-#define MIN_SAMPLE 50
+#define MIN_SAMPLE 10
 #define INFIN 1 << 20
 
 /*
