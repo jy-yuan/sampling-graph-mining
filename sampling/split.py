@@ -26,7 +26,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     n = int(args.num)
     target = args.target
-    directed = False
+    directed = True
     # default wiki-vote
     path = "../datasets/wiki-vote/dataset/wiki-Vote.txt"
     givennodes = 7115
@@ -47,10 +47,7 @@ if __name__ == "__main__":
         givennodes = 1134890
 
     nodes = set()
-    files = []
     splitsize = givennodes * 1.1 / n
-    for i in range(n):
-        files.append(open(target + '/' + str(i), "w"))
     with open(path, "r") as f:
         print("slicing")
         while 1:
@@ -58,7 +55,11 @@ if __name__ == "__main__":
             if not lines:
                 break
             else:
+                files = []
+                for i in range(n):
+                    files.append(open(target + '/' + str(i), "w"))
                 lines = tqdm(lines)
+
                 for line in lines:
                     uv = line.split()
                     if not uv[0].isnumeric() or len(uv) != 2:
@@ -74,6 +75,9 @@ if __name__ == "__main__":
                     if not directed:
                         whichfile = int(v // splitsize) % n
                         files[whichfile].write(str(v) + " " + str(u) + "\n")
+                
+                for i in range(n):
+                    files[i].close()
 
     print("slice done")
     nodes = sorted(list(nodes))
