@@ -40,53 +40,53 @@ if __name__ == "__main__":
 
     splitsize = givennodes * 1.1 / n
     edges = [0] * n
-    maxnode = 0
-    with open(path, "r") as f:
-        print("slicing")
-        while 1:
-            lines = f.readlines(1 << 30)
-            if not lines:
-                break
-            else:
-                files = []
-                for i in range(n):
-                    files.append(open(target + '/tmp' + str(i), "a"))
-                lines = tqdm(lines)
+    maxnode = 41652229
+    # with open(path, "r") as f:
+    #     print("slicing")
+    #     while 1:
+    #         lines = f.readlines(1 << 30)
+    #         if not lines:
+    #             break
+    #         else:
+    #             files = []
+    #             for i in range(n):
+    #                 files.append(open(target + '/tmp' + str(i), "a"))
+    #             lines = tqdm(lines)
 
-                for line in lines:
-                    uv = line.split()
-                    if not uv[0].isnumeric() or len(uv) != 2:
-                        continue
-                    u = int(uv[0])
-                    v = int(uv[1])
-                    if u > maxnode:
-                        maxnode = u
-                    if v > maxnode:
-                        maxnode = v
-                    if u == v:
-                        continue
-                    whichfile = int(u // splitsize) % n
-                    files[whichfile].write(str(u) + " " + str(v) + "\n")
-                    edges[whichfile] += 1
-                    if not directed:
-                        whichfile = int(v // splitsize) % n
-                        files[whichfile].write(str(v) + " " + str(u) + "\n")
-                        edges[whichfile] += 1
+    #             for line in lines:
+    #                 uv = line.split()
+    #                 if not uv[0].isnumeric() or len(uv) != 2:
+    #                     continue
+    #                 u = int(uv[0])
+    #                 v = int(uv[1])
+    #                 if u > maxnode:
+    #                     maxnode = u
+    #                 if v > maxnode:
+    #                     maxnode = v
+    #                 if u == v:
+    #                     continue
+    #                 whichfile = int(u // splitsize) % n
+    #                 files[whichfile].write(str(u) + " " + str(v) + "\n")
+    #                 edges[whichfile] += 1
+    #                 if not directed:
+    #                     whichfile = int(v // splitsize) % n
+    #                     files[whichfile].write(str(v) + " " + str(u) + "\n")
+    #                     edges[whichfile] += 1
 
-                for i in range(n):
-                    files[i].close()
+    #             for i in range(n):
+    #                 files[i].close()
 
-    print("slice done")
-    print("maxnode: " + str(maxnode))
-    for i in range(n):
-        print("edges in file " + str(i) + ": " + str(edges[i]))
+    # print("slice done")
+    # print("maxnode: " + str(maxnode))
+    # for i in range(n):
+    #     print("edges in file " + str(i) + ": " + str(edges[i]))
 
-    for i in range(n):
+    for i in range(1, n):
         print("formatting file %d" % i)
         edge_count = 0
-        outfile = open(target + '/' + str(i), "w")
+        outfile = open(target + '/tmp' + str(i), "w")
         outfile.write(str(maxnode+1) + ' ' + str(edges[i]) + '\n')
-        with open(target + '/tmp' + str(i), "r") as f:
+        with open(target + '/' + str(i), "r") as f:
             graph = {}
             while 1:
                 lines = f.readlines(1 << 30)
@@ -101,8 +101,9 @@ if __name__ == "__main__":
                         if u not in graph.keys():
                             graph[u] = set()
                         graph[u].add(v)
-                    keys = sorted(list(graph.keys()))
-                    for key in keys:
-                        edge_count += len(graph[key])
-                        outfile.writelines(genLines(key, graph[key]))
+            keys = sorted(list(graph.keys()))
+            for key in keys:
+                edge_count += len(graph[key])
+                outfile.writelines(genLines(key, graph[key]))
+        print("edges: " + str(edge_count))
         outfile.close()
