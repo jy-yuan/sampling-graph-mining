@@ -1,11 +1,3 @@
-# file like
-# u1 v1
-# u2 v2
-# ....
-# transfrom into several files with same from
-# every node should contain every adjacent edge
-# if not directed, double the edge
-
 from tqdm import tqdm
 import argparse
 
@@ -46,8 +38,8 @@ if __name__ == "__main__":
         path = "../datasets/youtube/dataset/com-youtube.ungraph.txt"
         givennodes = 1134890
 
-    nodes = set()
     splitsize = givennodes * 1.1 / n
+    maxnode = 0
     with open(path, "r") as f:
         print("slicing")
         while 1:
@@ -66,10 +58,12 @@ if __name__ == "__main__":
                         continue
                     u = int(uv[0])
                     v = int(uv[1])
+                    if u > maxnode:
+                        maxnode = u
+                    if v > maxnode:
+                        maxnode = v
                     if u == v:
                         continue
-                    nodes.add(u)
-                    nodes.add(v)
                     whichfile = int(u // splitsize) % n
                     files[whichfile].write(str(u) + " " + str(v) + "\n")
                     if not directed:
@@ -80,15 +74,7 @@ if __name__ == "__main__":
                     files[i].close()
 
     print("slice done")
-    nodes = sorted(list(nodes))
-    maxnode = nodes[-1]
     print("maxnode: " + str(maxnode))
-    mapping = [0] * (maxnode+1)
-    for i in range(len(nodes)):
-        mapping[nodes[i]] = i
-
-    for i in range(n):
-        files[i].close()
 
     for i in range(n):
         print("formatting file %d" % i)
@@ -99,8 +85,8 @@ if __name__ == "__main__":
             lines = tqdm(f.readlines())
             for line in lines:
                 uv = line.split()
-                u = mapping[int(uv[0])]
-                v = mapping[int(uv[1])]
+                u = int(uv[0])
+                v = int(uv[1])
                 if u not in graph.keys():
                     graph[u] = set()
                 graph[u].add(v)
@@ -109,5 +95,5 @@ if __name__ == "__main__":
                 edge_count += len(graph[key])
                 printlines += genLines(key, graph[key])
         with open(target + '/' + str(i), "w") as f:
-            f.write(str(len(nodes)) + ' ' + str(edge_count) + '\n')
+            f.write(str(maxnode+1) + ' ' + str(edge_count) + '\n')
             f.writelines(printlines)
