@@ -8,6 +8,7 @@
 
 from tqdm import tqdm
 import argparse
+import os
 
 
 def genLines(u, vs):
@@ -31,25 +32,28 @@ if __name__ == "__main__":
     path = "../datasets/wiki-vote/dataset/wiki-Vote.txt"
     givennodes = 7115
     if target == 'wk':
-        pass
-    if target == 'fr':
-        path = "../datasets/friendster/dataset/com-friendster.ungraph.txt"
-        givennodes = 65608366
-    elif target == 'tw':
-        path = "../datasets/twitter/dataset/twitter-2010.txt"
-        givennodes = 41652230
-    elif target == 'lj':
-        path = "../datasets/soc-livejournal/dataset/soc-LiveJournal1.txt"
-        givennodes = 4847571
-    elif target == 'pt':
-        path = "../datasets/patent/dataset/cit-Patents.txt"
-        givennodes = 3774768
+        pass    
     elif target == 'yt':
         path = "../datasets/youtube/dataset/com-youtube.ungraph.txt"
         givennodes = 1134890
+    elif target == 'pt':
+        path = "../datasets/patent/dataset/cit-Patents.txt"
+        givennodes = 3774768
+    elif target == 'lj':
+        path = "../datasets/soc-livejournal/dataset/soc-LiveJournal1.txt"
+        givennodes = 4847571
+    elif target == 'tw':
+        path = "../datasets/twitter/dataset/twitter-2010.txt"
+        givennodes = 41652230
+    elif target == 'fr':
+        path = "../datasets/friendster/dataset/com-friendster.ungraph.txt"
+        givennodes = 65608366
     else:
         path = target
         givennodes = 100000
+
+    if not os.path.exists(target):
+        os.mkdir(target)
 
     nodes = set()
     splitsize = givennodes * 1.1 / n
