@@ -30,6 +30,8 @@ if __name__ == "__main__":
     # default wiki-vote
     path = "../datasets/wiki-vote/dataset/wiki-Vote.txt"
     givennodes = 7115
+    if target == 'wk':
+        pass
     if target == 'fr':
         path = "../datasets/friendster/dataset/com-friendster.ungraph.txt"
         givennodes = 65608366
@@ -45,6 +47,9 @@ if __name__ == "__main__":
     elif target == 'yt':
         path = "../datasets/youtube/dataset/com-youtube.ungraph.txt"
         givennodes = 1134890
+    else:
+        path = target
+        givennodes = 100000
 
     nodes = set()
     splitsize = givennodes * 1.1 / n
@@ -75,7 +80,7 @@ if __name__ == "__main__":
                     if not directed:
                         whichfile = int(v // splitsize) % n
                         files[whichfile].write(str(v) + " " + str(u) + "\n")
-                
+
                 for i in range(n):
                     files[i].close()
 
