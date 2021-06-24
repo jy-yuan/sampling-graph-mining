@@ -95,5 +95,5 @@ int IEStop::add(int rankk, double x) {
 
 void IEStop::print_res() {
     double est = mean();
-    printf("***************Estimation result: %f.***************\n", est);
+    printf("***************Estimation result: %f***************\n", est);
 }

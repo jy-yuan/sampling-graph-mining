@@ -213,8 +213,10 @@ int main(int argc, char **argv) {
                 free(buf);
             }
             time = MPI_Wtime() - time;
+#ifdef DEBUG
             printf("Conpute process %d receive graph time = %f ms\n", my_rank,
                    time * 1000);
+#endif
             time = MPI_Wtime();
             double result = 0;
             if (task == "triangle") {
@@ -231,8 +233,10 @@ int main(int argc, char **argv) {
                 result = graph.count();
             }
             time = MPI_Wtime() - time;
+#ifdef DEBUG
             printf("Conpute process %d compute time = %f ms\n", my_rank,
                    time * 1000);
+#endif
             resultbuf[0] = my_rank;
             resultbuf[1] = result;
 #ifdef DEBUG
@@ -261,10 +265,12 @@ int main(int argc, char **argv) {
             GRAPH_DIR + '/' + std::to_string(my_rank - COMP_INSTANCES - 1);
         // printf("storage process %d read graph %s\n", my_rank, str.c_str());
         graph.init_from_file(str.c_str());
+#ifdef DEBUG
         printf("storage process %d read graph %s done.\n", my_rank,
                str.c_str());
         time = MPI_Wtime() - time;
         printf("Load dataset time = %f ms\n", time * 1000);
+#endif
         int samplingbuf[2] = {0};
         while (1) {
             MPI_Recv(samplingbuf, 2, MPI_INT, MPI_ANY_SOURCE, SAMPLING_TAG,
