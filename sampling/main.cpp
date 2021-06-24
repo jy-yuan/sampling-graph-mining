@@ -80,7 +80,8 @@ int main(int argc, char **argv) {
         single_thread = true;
     }
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    if (my_rank == 0) {
+    if (my_rank == 0) 
+    {
         /*
         Main process,
         send (sampling) Work No. to each Computation process
@@ -143,7 +144,9 @@ int main(int argc, char **argv) {
                 exit(0);
             }
         }
-    } else if (my_rank <= COMP_INSTANCES) {
+    } 
+    else if (my_rank <= COMP_INSTANCES) 
+    {
         /*
         computation process
         receive work no. from main process
@@ -239,7 +242,9 @@ int main(int argc, char **argv) {
             MPI_Send(resultbuf, 2, MPI_DOUBLE, 0, ESTIMATION_TAG,
                      MPI_COMM_WORLD);
         }
-    } else {
+    } 
+    else 
+    {
         /*
         storage process
         read from file of splited graph

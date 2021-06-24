@@ -165,6 +165,7 @@ bool Graph::edge_exist(int u, int v) {
 }
 
 // naive implementation, count edges
+// for users to implement
 double Graph::count() {
     double count = 0;
     // printf("verExi:");
