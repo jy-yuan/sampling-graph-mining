@@ -1,5 +1,5 @@
-# ZGraph 
-
+# A codebase for sampling graph mining 
+<!-- 
 ## Introduction 
 ZGraph is an open-source approximate graph mining implementation of the ASAP system mentioned in this paper[1].
 
@@ -25,7 +25,7 @@ ZGraph is an open-source approximate graph mining implementation of the ASAP sys
 		[ ] (possible) degree assisted optimization
 	[ ] fix some problem about (at-least one) predicate matching 
 	[ ] complex predicate matching (results) 
-		[ ] comparing the performance using complex predicate matching && those with (all, at-least) predicate matching (show that is comparable)
+		[ ] comparing the performance using complex predicate matching && those with (all, at-least) predicate matching (show that is comparable) -->
 
 ## Reference
 [1] Anand, I., et al. "ASAP: Fast, Approximate Graph Pattern Mining at Scale." Proceedings of the USENIX conference. 2018.
